@@ -23,14 +23,14 @@ parameters:
     type: string
     displayName: Build Commit IDs
     default: ''
-  - name: project_to_build
-    type: string
-    displayName: Project To Build
-    default: ' '
-    values:
-      - ' '
-      - 'C3D.Extensions.Playwright.AspNetCore'
-      - 'C3D.Extensions.Playwright.AspNetCore.Xunit'
+  - name: build_aspnetcore
+    type: boolean
+    displayName: Force build C3D.Extensions.Playwright.AspNetCore
+    default: false
+  - name: build_aspnetcore_xunit
+    type: boolean
+    displayName: Force build C3D.Extensions.Playwright.AspNetCore.Xunit
+    default: false
 
 trigger:
   batch: true
@@ -64,8 +64,6 @@ variables:
   value: 'http://timestamp.comodoca.com'
 - name: 'git_commit_ids'
   value: ${{ parameters.git_commit_ids }}
-- name: 'project_to_build'
-  value: ${{ parameters.project_to_build }}
 - name: 'target'
   value: 'PackIfChanged'
 
@@ -76,6 +74,12 @@ steps:
   persistCredentials: true
   fetchDepth: 0
   fetchTags: true
+
+- powershell: 'Write-Host ("##vso[task.setvariable variable=project_to_build;]$($ENV:project_to_build);C3D.Extensions.Playwright.AspNetCore")'
+  condition: parameters.build_aspnetcore
+
+- powershell: 'Write-Host ("##vso[task.setvariable variable=project_to_build;]$($ENV:project_to_build);C3D.Extensions.Playwright.AspNetCore.Xunit")'
+  condition: parameters.build_aspnetcore_xunit
 
 - powershell: 'Write-Host ("##vso[task.setvariable variable=MSBuildEmitSolution;]0")'
   displayName: 'Ensure MSBuildEmitSolution is not set'
