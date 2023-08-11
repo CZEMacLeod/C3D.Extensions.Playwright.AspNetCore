@@ -30,6 +30,7 @@ parameters:
     values:
       - ' '
       - 'C3D.Extensions.Playwright.AspNetCore'
+      - 'C3D.Extensions.Playwright.AspNetCore.Xunit'
 
 trigger:
   batch: true
@@ -221,7 +222,7 @@ steps:
   inputs:
     command: 'push'
     feedsToUse: 'config'
-    includeNugetOrg: 'true'
+    includeNugetOrg: true
     publishFeedCredentials: 'NuGet.org'
     externalFeedCredentials: 'NuGet.org'
     packagesToPush: $(Build.ArtifactStagingDirectory)\*.nupkg
@@ -243,7 +244,7 @@ steps:
   displayName: 'Create GitHub Release'
   inputs:
     gitHubConnection: github-czemacleod
-    repositoryName: CZEMacLeod/C3D.Extensions.Logging
+    repositoryName: CZEMacLeod/C3D.Extensions.Playwright.AspNetCore
     assets: $(Build.ArtifactStagingDirectory)/*.nupkg
     addChangeLog: true
 
