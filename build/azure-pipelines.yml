@@ -23,6 +23,10 @@ parameters:
     type: string
     displayName: Build Commit IDs
     default: ''
+  - name: project_to_build
+    type: string
+    displayName: Project(s) to Build
+    default: ''
   - name: build_aspnetcore
     type: boolean
     displayName: Force build C3D.Extensions.Playwright.AspNetCore
@@ -66,6 +70,12 @@ variables:
   value: ${{ parameters.git_commit_ids }}
 - name: 'target'
   value: 'PackIfChanged'
+- name: 'project_to_build'
+  value: ${{ parameters.project_to_build }}
+- name: 'build_aspnetcore'
+  value: ${{ parameters.build_aspnetcore }}
+- name: 'build_aspnetcore_xunit'
+  value: ${{ parameters.build_aspnetcore_xunit }}
 
 steps:
 - checkout: self
@@ -76,10 +86,12 @@ steps:
   fetchTags: true
 
 - powershell: 'Write-Host ("##vso[task.setvariable variable=project_to_build;]$($ENV:project_to_build);C3D.Extensions.Playwright.AspNetCore")'
-  condition: parameters.build_aspnetcore
+  displayName: 'Force building C3D.Extensions.Playwright.AspNetCore'
+  condition: variables.build_aspnetcore
 
-- powershell: 'Write-Host ("##vso[task.setvariable variable=project_to_build;]$($ENV:project_to_build);C3D.Extensions.Playwright.AspNetCore.Xunit")'
-  condition: parameters.build_aspnetcore_xunit
+- powershell: 'Write-Host ("##vso[task.setvariable variable=project_to_build;]$($env:project_to_build);C3D.Extensions.Playwright.AspNetCore.Xunit")'
+  displayName: 'Force building C3D.Extensions.Playwright.AspNetCore.Xunit'
+  condition: variables.build_aspnetcore_xunit
 
 - powershell: 'Write-Host ("##vso[task.setvariable variable=MSBuildEmitSolution;]0")'
   displayName: 'Ensure MSBuildEmitSolution is not set'
