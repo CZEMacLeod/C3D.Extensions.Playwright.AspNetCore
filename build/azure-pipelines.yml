@@ -87,11 +87,11 @@ steps:
 
 - powershell: 'Write-Host ("##vso[task.setvariable variable=project_to_build;]$($ENV:project_to_build);C3D.Extensions.Playwright.AspNetCore")'
   displayName: 'Force building C3D.Extensions.Playwright.AspNetCore'
-  condition: variables.build_aspnetcore
+  condition: eq(variables['build_aspnetcore'],true)
 
 - powershell: 'Write-Host ("##vso[task.setvariable variable=project_to_build;]$($env:project_to_build);C3D.Extensions.Playwright.AspNetCore.Xunit")'
   displayName: 'Force building C3D.Extensions.Playwright.AspNetCore.Xunit'
-  condition: variables.build_aspnetcore_xunit
+  condition: eq(variables['build_aspnetcore_xunit'],true)
 
 - powershell: 'Write-Host ("##vso[task.setvariable variable=MSBuildEmitSolution;]0")'
   displayName: 'Ensure MSBuildEmitSolution is not set'
@@ -149,7 +149,7 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     clean: true
-    msbuildArgs: '/t:$(target) /p:ProjectToBuild=$(project_to_build) /p:ContinuousIntegrationBuild=true /p:PackageOutputPath="$(Build.ArtifactStagingDirectory)" /p:BuildUser="$(buildUser)" /p:BuildMachine="$(buildMachine)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
+    msbuildArgs: '/t:$(target) /p:ProjectToBuild="$(project_to_build)" /p:ContinuousIntegrationBuild=true /p:PackageOutputPath="$(Build.ArtifactStagingDirectory)" /p:BuildUser="$(buildUser)" /p:BuildMachine="$(buildMachine)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
 
 # This is failing at present...
 
