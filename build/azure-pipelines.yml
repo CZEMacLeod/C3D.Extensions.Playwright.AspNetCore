@@ -22,11 +22,11 @@ parameters:
   - name: git_commit_ids
     type: string
     displayName: Build Commit IDs
-    default: ''
+    default: ' '
   - name: project_to_build
     type: string
     displayName: Project(s) to Build
-    default: ''
+    default: ' '
   - name: build_aspnetcore
     type: boolean
     displayName: Force build C3D.Extensions.Playwright.AspNetCore
