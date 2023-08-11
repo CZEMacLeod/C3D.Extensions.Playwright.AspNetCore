@@ -1,0 +1,47 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <!-- Full symbols so that unit test assertions have more info -->
+    <DebugType Condition=" '$(Configuration)' == 'Debug' ">Full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(SignType)' == 'Test'">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Test.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(SignType)' == 'Real'">
+    <SignAssembly>true</SignAssembly>
+    <DelaySign Condition="'$(IsTestProject)' != 'true'">true</DelaySign>
+    <AssemblyOriginatorKeyFile Condition="'$(IsTestProject)' != 'true'">$(MSBuildThisFileDirectory)..\build\cloud3d-codesign.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile Condition="'$(IsTestProject)' == 'true'">$(MSBuildThisFileDirectory)..\build\Test.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>CZEMacLeod</Authors>
+    <Company>Cloud3D Ltd.</Company>
+    <Copyright>©2023 Cynthia Z E Macleod All rights reserved.</Copyright>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile Condition="EXISTS('$(MSBuildProjectDirectory)\README.md')">README.md</PackageReadmeFile>
+    <PackageLicensePath>$(MSBuildThisFileDirectory)..\$(PackageLicenseFile)</PackageLicensePath>
+    <PackageProjectUrl>https://github.com/CZEMacLeod/C3D.Extensions.Playwright.AspNetCore</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/CZEMacLeod/C3D.Extensions.Playwright.AspNetCore.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildProjectDirectory)\README.md" Condition="EXISTS('$(MSBuildProjectDirectory)\README.md')" 
+          Pack="true" 
+          PackagePath="\" />
+    <None Include="$(PackageLicensePath)"
+          Pack="true"
+          PackagePath="$(PackageLicenseFile)"
+          Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

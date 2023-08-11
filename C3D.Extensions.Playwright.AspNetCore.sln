@@ -1,0 +1,63 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34003.232
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "C3D.Extensions.Playwright.AspNetCore", "src\C3D\Extensions\Playwright\AspNetCore\C3D.Extensions.Playwright.AspNetCore.csproj", "{3752E08B-2058-452D-8ABA-10EE4D4B5F28}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{DA726315-C6FB-4BCB-A766-4BD32A9643A2}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		build\Test.snk = build\Test.snk
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{B68B1ED0-3BD1-43EE-8FFB-9D6A1EF743D4}"
+	ProjectSection(SolutionItems) = preProject
+		build\azure-pipelines.yml = build\azure-pipelines.yml
+		build\ImportCert.ps1 = build\ImportCert.ps1
+		build\RemoveCert.ps1 = build\RemoveCert.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{79DBA4F1-9703-4A06-A219-C0E03D99633F}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.Props = src\Directory.Build.Props
+		src\Directory.Build.Targets = src\Directory.Build.Targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{7257F2A8-EE70-4224-9D5D-1EE29EAA0338}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "C3D.Extensions.Playwright.AspNetCore.Xunit", "src\C3D\Extensions\Playwright\AspNetCore.Xunit\C3D.Extensions.Playwright.AspNetCore.Xunit.csproj", "{BBA1AE89-9A65-4482-AF8F-9A491B93A3B2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{0E1126BA-4119-4AD3-9649-06113BCE2D56}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3752E08B-2058-452D-8ABA-10EE4D4B5F28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3752E08B-2058-452D-8ABA-10EE4D4B5F28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3752E08B-2058-452D-8ABA-10EE4D4B5F28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3752E08B-2058-452D-8ABA-10EE4D4B5F28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBA1AE89-9A65-4482-AF8F-9A491B93A3B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBA1AE89-9A65-4482-AF8F-9A491B93A3B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBA1AE89-9A65-4482-AF8F-9A491B93A3B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBA1AE89-9A65-4482-AF8F-9A491B93A3B2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3752E08B-2058-452D-8ABA-10EE4D4B5F28} = {79DBA4F1-9703-4A06-A219-C0E03D99633F}
+		{B68B1ED0-3BD1-43EE-8FFB-9D6A1EF743D4} = {DA726315-C6FB-4BCB-A766-4BD32A9643A2}
+		{BBA1AE89-9A65-4482-AF8F-9A491B93A3B2} = {79DBA4F1-9703-4A06-A219-C0E03D99633F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F8A03877-9554-4F94-B4B5-0513AAB4A1B8}
+	EndGlobalSection
+EndGlobal

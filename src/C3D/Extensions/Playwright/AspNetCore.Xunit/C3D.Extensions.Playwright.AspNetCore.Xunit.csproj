@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyTitle>$(AssemblyTitle) Xunit</AssemblyTitle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="version.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageTag Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="C3D.Extensions.Logging.Xunit" Version="0.1.17" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\AspNetCore\C3D.Extensions.Playwright.AspNetCore.csproj" />
+  </ItemGroup>
+</Project>
