@@ -1,5 +1,4 @@
 ﻿using Microsoft.Playwright;
-using System.Diagnostics.CodeAnalysis;
 
 namespace C3D.Extensions.Playwright.AspNetCore.Utilities;
 
@@ -15,7 +14,7 @@ public class PlaywrightTrace : IAsyncDisposable
 
     public string? TraceName => path;
 
-    public bool ShowOnClose { get; set; }
+    public PlaywrightTraceShow Show { get; set; }
 
     internal async Task InitializeAsync(TracingStartOptions options)
     {
@@ -29,9 +28,16 @@ public class PlaywrightTrace : IAsyncDisposable
         {
             Path = path
         });
-        if (path is not null && ShowOnClose)
+        if (path is not null && Show != PlaywrightTraceShow.None)
         {
-            await PlaywrightUtilities.ShowTraceAsync(path);
+            if (Show == PlaywrightTraceShow.OnCloseAndWait)
+            {
+                await PlaywrightUtilities.ShowTraceAsync(path);
+            }
+            else
+            {
+                _ = PlaywrightUtilities.ShowTraceAsync(path);   // FAF
+            }
         }
         GC.SuppressFinalize(this);
     }
