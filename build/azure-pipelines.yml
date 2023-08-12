@@ -160,7 +160,7 @@ steps:
   inputs:
    testSelector: 'testAssemblies'
    testAssemblyVer2: |
-     **\*.Test.dll
+     **\*.Tests.dll
      !**\*TestAdapter.dll
      !**\*TestCentric*.dll
      !**\*TestHost*.dll
@@ -261,6 +261,7 @@ steps:
 
 - task: GithubRelease@0 
   displayName: 'Create GitHub Release'
+  condition: and(succeeded(), ne(variables['package_count'],0))
   inputs:
     gitHubConnection: github-czemacleod
     repositoryName: CZEMacLeod/C3D.Extensions.Playwright.AspNetCore
