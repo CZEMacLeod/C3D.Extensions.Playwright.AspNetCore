@@ -12,6 +12,8 @@ public class PlaywrightFixture<TProgram> : PlaywrightWebApplicationFactory<TProg
 
     public virtual bool AddMessageSinkProvider => true;
 
+    public IMessageSink MessageSink => output;
+
     protected override ILoggingBuilder ConfigureLogging(ILoggingBuilder builder)
     {
         if (AddMessageSinkProvider) builder.AddXunit(output);
