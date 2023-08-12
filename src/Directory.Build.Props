@@ -9,6 +9,8 @@
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <NoWarn>$(NoWarn);NU5128;SA0001</NoWarn>
     <AssemblyTitle>C3D Extensions Playwright AspNetCore</AssemblyTitle>
+
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

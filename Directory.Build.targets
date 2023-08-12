@@ -52,26 +52,34 @@
       <_Temporary Remove="@(_Temporary)" />
       <_Temporary Include="$(git_commit_ids)" />
     </ItemGroup>
+    <ItemGroup>
+      <GitProjectDirectory Include="$(MSBuildProjectDirectory)" />
+      <GitProjectDirectory Include="@(ProjectReference->DirectoryName())" />
+    </ItemGroup>
     <Message Importance="high" Text="Project: $(MSBuildProjectName)" />
     <Message Importance="high" Text="Git Commit IDs: %(_Temporary.Identity)" />
-    <Message Importance="high" Text="GitProjectDirectory: $(GitProjectDirectory)" />
-    <Message Importance="high" Text="GitTestProjectDirectory: $(GitTestProjectDirectory)" Condition="'$(GitTestProjectDirectory)'!=''" />
+    <Message Importance="high" Text="GitProjectDirectory: $([MSBuild]::MakeRelative($(SolutionDir),'%(GitProjectDirectory.Identity)'))" />
+    
     <PropertyGroup>
       <_GitCommand>git log --pretty=tformat:"%%H" -n1 .</_GitCommand>
     </PropertyGroup>
-    <Exec Command="$(_GitCommand)" WorkingDirectory="$(GitProjectDirectory)" ConsoleToMSBuild="true" Condition="'$(ProjectCommitID)'==''">
-      <Output TaskParameter="ConsoleOutput" PropertyName="ProjectCommitID" />
+    <Exec Command="$(_GitCommand)" WorkingDirectory="%(GitProjectDirectory.Identity)" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="ProjectCommitID" />
     </Exec>
-    <Exec Command="$(_GitCommand)" WorkingDirectory="$(GitTestProjectDirectory)" ConsoleToMSBuild="true" Condition="'$(TestProjectCommitID)'=='' AND '$(GitTestProjectDirectory)'!=''">
-      <Output TaskParameter="ConsoleOutput" PropertyName="TestProjectCommitID" />
-    </Exec>
-    <Message Importance="high" Text="ProjectCommitID: $(ProjectCommitID)" />
-    <Message Importance="high" Text="TestProjectCommitID: $(TestProjectCommitID)" Condition="'$(TestProjectCommitID)'!=''" />
+    <ItemGroup>
+      <ProjectCommitID Condition="'%(Identity)' != '' AND
+                                  '@(ProjectCommitID)' != '' AND
+                                  '@(_Temporary)' != ''">
+        <CommitIDFound>true</CommitIDFound>
+      </ProjectCommitID>
+    </ItemGroup>
+    <Message Importance="high" Text="ProjectCommitID: %(ProjectCommitID.Identity) %(ProjectCommitID.CommitIDFound)" />
+    
     <Message Importance="high" Text="IsPackable: $(IsPackable)" />
     <Message Importance="high" Text="IsTestProject: $(IsTestProject)" />
+    
     <PropertyGroup>
-      <CommitIDFound Condition="'$(ProjectCommitID)'=='%(_Temporary.Identity)'">true</CommitIDFound>
-      <CommitIDFound Condition="'$(TestProjectCommitID)'!='' AND '$(TestProjectCommitID)'=='%(_Temporary.Identity)'">true</CommitIDFound>
+      <CommitIDFound Condition="'%(ProjectCommitID.CommitIDFound)'=='true'">true</CommitIDFound>
       <CommitIDFound Condition="'$(CommitIDFound)'==''">false</CommitIDFound>
     </PropertyGroup>
     <Message Importance="high" Text="CommitIDFound: $(CommitIDFound)" />

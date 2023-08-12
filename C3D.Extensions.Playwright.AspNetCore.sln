@@ -26,6 +26,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{79DBA4F1-970
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{7257F2A8-EE70-4224-9D5D-1EE29EAA0338}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.Props = test\Directory.Build.Props
+		test\Directory.Build.Targets = test\Directory.Build.Targets
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "C3D.Extensions.Playwright.AspNetCore.Xunit", "src\C3D\Extensions\Playwright\AspNetCore.Xunit\C3D.Extensions.Playwright.AspNetCore.Xunit.csproj", "{BBA1AE89-9A65-4482-AF8F-9A491B93A3B2}"
 EndProject
@@ -35,6 +39,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{0E1126BA-4
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{87AD0A87-358B-4C6B-832B-04269C7D9AB0}"
+	ProjectSection(SolutionItems) = preProject
+		samples\Directory.Build.Props = samples\Directory.Build.Props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.WebApp", "samples\Sample.WebApp\Sample.WebApp.csproj", "{C9D19B9D-B61C-435A-8E6C-B32A56A76F27}"
 EndProject

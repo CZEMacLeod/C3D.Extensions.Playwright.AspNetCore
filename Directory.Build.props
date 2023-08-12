@@ -1,8 +1,7 @@
 <Project>
   <PropertyGroup>
-    <GitProjectDirectory>$(MSBuildProjectDirectory)</GitProjectDirectory>
-    <GitTestProjectDirectory />
     <IsTestProject>false</IsTestProject>
+    <IsPackable>false</IsPackable>
     <SolutionDir Condition="'$(SolutionDir)'==''">$(MSBuildThisFileDirectory)</SolutionDir>
   </PropertyGroup>
 

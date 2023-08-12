@@ -166,9 +166,9 @@ steps:
      !**\*TestHost*.dll
      !**\*TestPlatform*.dll
      !**\obj\**
-   searchFolder: '$(System.DefaultWorkingDirectory)\test'
-   vstestLocationMethod: 'location'
-   vstestLocation: $(VSTestPath)
+   searchFolder: '$(System.SourcesDirectory)\test'
+   vstestLocationMethod: 'version'
+   vsTestVersion: 'toolsInstaller'
    platform: '$(buildPlatform)'
    configuration: '$(buildConfiguration)'
    codeCoverageEnabled: true
