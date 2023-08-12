@@ -166,7 +166,7 @@ steps:
      !**\*TestHost*.dll
      !**\*TestPlatform*.dll
      !**\obj\**
-   searchFolder: '$(System.SourcesDirectory)\test'
+   searchFolder: 'test'
    vstestLocationMethod: 'version'
    vsTestVersion: 'toolsInstaller'
    platform: '$(buildPlatform)'
