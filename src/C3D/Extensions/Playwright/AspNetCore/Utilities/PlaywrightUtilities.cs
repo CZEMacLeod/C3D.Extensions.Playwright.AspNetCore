@@ -8,7 +8,7 @@ public class PlaywrightUtilities
     /// <summary>
     /// Install and deploy all binaries Playwright may need.
     /// </summary>
-    internal static void InstallPlaywright(PlaywrightBrowserType? browser = null)
+    public static void InstallPlaywright(PlaywrightBrowserType? browser = null)
     {
         // Lock here so we don't try installing from multiple fixtures.
         lock (installLock)
@@ -54,16 +54,16 @@ public class PlaywrightUtilities
         }
     }
 
-    internal static void Uninstall(PlaywrightBrowserType? browser = null)
+    public static void UninstallPlaywright(PlaywrightBrowserType? browser = null)
     {
         lock (installLock)
         {
-            var exitCode = Microsoft.Playwright.Program.Main(
-            new[] { "uninstall", browser is null ? "--all" : browser.Value.ToString().ToLowerInvariant() });
+            var args = new[] { "uninstall", browser is null ? "--all" : browser.Value.ToString().ToLowerInvariant() };
+            var exitCode = Microsoft.Playwright.Program.Main(args);
             if (exitCode != 0)
             {
                 throw new Exception(
-                  $"Playwright exited with code {exitCode} on uninstall -all");
+                  $"Playwright exited with code {exitCode} on {string.Join(' ', args)}");
             }
             if (browser is null)
             {
