@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="C3D.Extensions.Logging.Xunit" Version="0.1.17" />
+    <PackageReference Include="C3D.Extensions.Logging.Xunit" Version="0.2.2" />
   </ItemGroup>
   
   <ItemGroup>
