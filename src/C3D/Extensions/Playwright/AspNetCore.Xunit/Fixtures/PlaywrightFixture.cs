@@ -19,7 +19,6 @@ public class PlaywrightFixture<TProgram> : PlaywrightWebApplicationFactory<TProg
     }
 
     #region "IAsyncLifetime"
-    async Task IAsyncLifetime.InitializeAsync() => await InitializeAsync();
     async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
     #endregion
 }
