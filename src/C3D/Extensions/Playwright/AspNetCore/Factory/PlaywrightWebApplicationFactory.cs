@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
 using System.Diagnostics.CodeAnalysis;
 
@@ -26,20 +27,32 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     public virtual string? Environment { get; }
     public virtual PlaywrightBrowserType BrowserType => PlaywrightBrowserType.Chromium;
 
-    protected virtual BrowserTypeLaunchOptions LaunchOptions { get; } = new BrowserTypeLaunchOptions()
+    protected virtual BrowserTypeLaunchOptions LaunchOptions { get; } = new()
     {
         Headless = true
+    };
+
+    private BrowserNewPageOptions? pageOptions;
+    protected virtual BrowserNewPageOptions PageOptions => pageOptions ??= new()
+    {
+        BaseURL = uri
+    };
+
+    private BrowserNewContextOptions? contextOptions;
+    protected virtual BrowserNewContextOptions ContextOptions => contextOptions ??= new()
+    {
+        BaseURL = uri
     };
 
     public virtual LogLevel MinimumLogLevel => LogLevel.Trace;
     #endregion
 
-    protected virtual IBrowserType GetBrowser() => BrowserType switch
+    protected virtual IBrowserType GetBrowser(PlaywrightBrowserType? browserType=null) => (browserType ?? BrowserType) switch
     {
         PlaywrightBrowserType.Chromium => playwright?.Chromium,
         PlaywrightBrowserType.Firefox => playwright?.Firefox,
         PlaywrightBrowserType.Webkit => playwright?.Webkit,
-        _ => throw new ArgumentOutOfRangeException(nameof(BrowserType))
+        _ => throw new ArgumentOutOfRangeException(nameof(browserType))
     } ?? throw new InvalidOperationException("Could not get browser type");
 
 
@@ -77,19 +90,100 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         return new CompositeHost(testHost, host);
     }
 
-    public async Task<IPage> CreatePlaywrightPageAsync()
+    public async Task<IBrowser> GetDefaultPlaywrightBrowserAsync()
     {
         _ = Server;                 // Ensure Server is initialized
         await InitializeAsync();    // Ensure Playwright is initialized
 
-        return await browser.NewPageAsync(new BrowserNewPageOptions()
-        {
-            BaseURL = uri
-        });
+        return browser;
     }
 
+    /// <summary>
+    /// Creates a new Browser instance.
+    /// </summary>
+    /// <param name="browserType">Can be set to override the default BrowserType property</param>
+    /// <param name="browserOptions">A callback that can be used to override the default LaunchOptions property</param>
+    /// <returns>An IBrowser object</returns>
+    /// <remarks> The consumer must ensure that the browser instance is closed and disposed of correctly.</remarks>
+    public async Task<IBrowser> CreateCustomPlaywrightBrowserAsync(PlaywrightBrowserType? browserType = null,
+                                                                   Action<BrowserTypeLaunchOptions>? browserOptions = null)
+    {
+        _ = Server;                 // Ensure Server is initialized
+        await InitializeAsync();    // Ensure Playwright is initialized
+
+        var launchOptions = new BrowserTypeLaunchOptions(LaunchOptions);
+        browserOptions?.Invoke(launchOptions);
+        return await GetBrowser(browserType).LaunchAsync(launchOptions);
+    }
+
+    /// <summary>
+    /// Creates a new Page instance using the web application URL and any custom options.
+    /// </summary>
+    /// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
+    /// <returns>An IPage object</returns>
+    /// <remarks>The consumer should close the page when they are finished with it.</remarks>
+    public async Task<IPage> CreatePlaywrightPageAsync(Action<BrowserNewPageOptions>? pageOptions = null)
+    {
+        _ = Server;                 // Ensure Server is initialized
+        await InitializeAsync();    // Ensure Playwright is initialized
+
+        var options = new BrowserNewPageOptions(PageOptions);
+        pageOptions?.Invoke(options);
+        return await browser.NewPageAsync(options);
+    }
+
+    /// <summary>
+    /// Creates a new Browser instance and a Page inside it, using the web application URL and any custom options.
+    /// </summary>
+    /// <param name="browserType">Can be set to override the default BrowserType property</param>
+    /// <param name="browserOptions">A callback that can be used to override the default LaunchOptions property</param>
+    /// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
+    /// <returns>A PlaywrightBrowserPage object which will correctly close the browser and page when disposed</returns>
+    /// <remarks>The PlaywrightBrowserPage should be disposed of when finished with</remarks>
+    public async Task<PlaywrightBrowserPage> CreateCustomPlaywrightBrowserPageAsync(PlaywrightBrowserType? browserType = null,
+                                                                                    Action<BrowserTypeLaunchOptions>? browserOptions = null,
+                                                                                    Action<BrowserNewPageOptions>? pageOptions = null)
+    {
+        var browser = await CreateCustomPlaywrightBrowserAsync(browserType, browserOptions);
+        var options = new BrowserNewPageOptions(PageOptions);
+        pageOptions?.Invoke(options);
+        var page = await browser.NewPageAsync(options);
+        return new(browser, page);
+    }
+
+    /// <summary>
+    /// Creates a new Browser Context instance using the web application URL and any custom options.
+    /// </summary>
+    /// <param name="contextOptions">A callback that can be used to override the default ContextOptions property</param>
+    /// <returns>An IBrowserContext object</returns>
+    /// <remarks>The consumer is responsible for the correct closure and disposal of the context and any pages creates in it.</remarks>
+    public async Task<IBrowserContext> CreatePlaywrightContextAsync(Action<BrowserNewContextOptions>? contextOptions = null)
+    {
+        _ = Server;                 // Ensure Server is initialized
+        await InitializeAsync();    // Ensure Playwright is initialized
+
+        var options = new BrowserNewContextOptions(ContextOptions);
+        contextOptions?.Invoke(options);
+        return await browser.NewContextAsync(options);
+    }
+
+    /// <summary>
+    /// Creates a new Browser Context instance and a Page inside it, using the web application URL and any custom options.
+    /// </summary>
+    /// <param name="contextOptions">A callback that can be used to override the default ContextOptions property</param>
+    /// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
+    /// <returns>A PlaywrightContextPage object which will correctly close the browser and page when disposed</returns>
+    /// <remarks>The PlaywrightContextPage should be disposed of when finished with</remarks>
+    public async Task<PlaywrightContextPage> CreatePlaywrightContextPageAsync(Action<BrowserNewContextOptions>? contextOptions = null)
+    {
+        var context = await CreatePlaywrightContextAsync(contextOptions);
+        var page = await context.NewPageAsync();
+        return new(context, page);
+    }
+
+
     [MemberNotNull(nameof(playwright), nameof(browser))]
-    public async Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
         if (playwright is not null && browser is not null) return;
 
@@ -108,6 +202,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         playwright = null;
     }
 
+    private bool isDisposed;
     [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Dealt with by base class")]
     public async override ValueTask DisposeAsync()
     {
@@ -118,7 +213,11 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         browser = null;
 
         await base.DisposeAsync();
+
+        isDisposed = true;
     }
+
+    protected bool IsDisposed => isDisposed;
 
     public override string ToString() => $"{Environment}_{BrowserType}_{typeof(TProgram).FullName}";
 
