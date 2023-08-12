@@ -135,6 +135,11 @@ steps:
     versionSpec: '>=6.6.1'
     checkLatest: true
 
+- task: VisualStudioTestPlatformInstaller@1
+  inputs:
+    packageFeedSelector: 'nugetOrg'
+    versionSelector: 'latestStable'
+
 - task: NuGetCommand@2
   inputs:
     command: 'restore'
@@ -151,27 +156,25 @@ steps:
     clean: true
     msbuildArgs: '/t:$(target) /p:ProjectToBuild="$(project_to_build)" /p:ContinuousIntegrationBuild=true /p:PackageOutputPath="$(Build.ArtifactStagingDirectory)" /p:BuildUser="$(buildUser)" /p:BuildMachine="$(buildMachine)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
 
-# This is failing at present...
-
-#- task: VSTest@2
-#  inputs:
-#    testSelector: 'testAssemblies'
-#    testAssemblyVer2: |
-#      **\*.Test.dll
-#      !**\*TestAdapter.dll
-#      !**\*TestCentric*.dll
-#      !**\*TestHost*.dll
-#      !**\*TestPlatform*.dll
-#      !**\obj\**
-#    searchFolder: '$(System.DefaultWorkingDirectory)\test'
-#    vstestLocationMethod: 'location'
-#    vstestLocation: $(VSTestPath)
-#    platform: '$(buildPlatform)'
-#    configuration: '$(buildConfiguration)'
-#    codeCoverageEnabled: true
-#    minimumExpectedTests: 0
-#    failOnMinTestsNotRunFail: false
-#    failIfCoverageEmpty: false
+- task: VSTest@2
+  inputs:
+   testSelector: 'testAssemblies'
+   testAssemblyVer2: |
+     **\*.Test.dll
+     !**\*TestAdapter.dll
+     !**\*TestCentric*.dll
+     !**\*TestHost*.dll
+     !**\*TestPlatform*.dll
+     !**\obj\**
+   searchFolder: '$(System.DefaultWorkingDirectory)\test'
+   vstestLocationMethod: 'location'
+   vstestLocation: $(VSTestPath)
+   platform: '$(buildPlatform)'
+   configuration: '$(buildConfiguration)'
+   codeCoverageEnabled: true
+   minimumExpectedTests: 0
+   failOnMinTestsNotRunFail: false
+   failIfCoverageEmpty: false
 
 - task: PublishBuildArtifacts@1
   inputs:
