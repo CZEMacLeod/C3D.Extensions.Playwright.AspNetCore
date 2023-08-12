@@ -1,7 +1,8 @@
-﻿using Microsoft.Playwright;
+﻿using C3D.Extensions.Playwright.AspNetCore.Utilities;
+using Microsoft.Playwright;
 using Xunit.Abstractions;
 
-namespace C3D.Extensions.Playwright.AspNetCore.Xunit.Fixtures;
+namespace C3D.Extensions.Playwright.AspNetCore.Xunit;
 
 public class PlaywrightPageFixture<TProgram> : PlaywrightFixture<TProgram>
     where TProgram : class
@@ -10,12 +11,17 @@ public class PlaywrightPageFixture<TProgram> : PlaywrightFixture<TProgram>
 
     public PlaywrightPageFixture(IMessageSink output) : base(output) { }
 
-    public IPage? Page => page ?? throw (IsDisposed ? new ObjectDisposedException(nameof(Page)) :  new Exception("Not initialized"));
+    public IPage Page => page ?? throw (IsDisposed ? new ObjectDisposedException(nameof(Page)) :  new Exception("Not initialized"));
 
+    private int initializing=0;
     public async override Task InitializeAsync()
     {
         await base.InitializeAsync();
-        page = await CreatePlaywrightPageAsync();
+
+        if (Interlocked.CompareExchange(ref initializing, 1, 0) == 0)
+        {
+            page = await CreatePlaywrightPageAsync();
+        }
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Base class calls SuppressFinalize")]
