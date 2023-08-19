@@ -1,9 +1,9 @@
 ﻿using C3D.Extensions.Playwright.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
 using System.Diagnostics.CodeAnalysis;
 
@@ -14,6 +14,9 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
 {
     private IPlaywright? playwright;
     private IBrowser? browser;
+    private IHostApplicationLifetime? lifetime;
+    private CancellationTokenSource hostStarted = new();
+
     private string? uri;
     private int? port;
     // We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
@@ -83,15 +86,25 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         }));
         var host = base.CreateHost(builder);
 
+        lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+        lifetime.ApplicationStarted.Register(() => hostStarted.Cancel());
+
         return new CompositeHost(testHost, host);
     }
 
     public async Task<IBrowser> GetDefaultPlaywrightBrowserAsync()
     {
-        _ = Server;                 // Ensure Server is initialized
-        await InitializeAsync();    // Ensure Playwright is initialized
+        await EnsureServerStartedAsync(); // Ensure Server is initialized
+        await InitializeAsync();          // Ensure Playwright is initialized
 
         return browser;
+    }
+
+    private async Task EnsureServerStartedAsync()
+    {
+        if (hostStarted.IsCancellationRequested) return;
+        _ = Server;                 // Ensure Server is initialized
+        await Task.Delay(Timeout.Infinite, hostStarted.Token).ContinueWith(tsk => { });
     }
 
     /// <summary>
@@ -104,8 +117,8 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     public async Task<IBrowser> CreateCustomPlaywrightBrowserAsync(PlaywrightBrowserType? browserType = null,
                                                                    Action<BrowserTypeLaunchOptions>? browserOptions = null)
     {
-        _ = Server;                 // Ensure Server is initialized
-        await InitializeAsync();    // Ensure Playwright is initialized
+        await EnsureServerStartedAsync(); // Ensure Server is initialized
+        await InitializeAsync();          // Ensure Playwright is initialized
         EnsureBrowserInstalled(browserType);
         var launchOptions = new BrowserTypeLaunchOptions(LaunchOptions);
         browserOptions?.Invoke(launchOptions);
@@ -125,8 +138,8 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     /// <remarks>The consumer should close the page when they are finished with it.</remarks>
     public async Task<IPage> CreatePlaywrightPageAsync(Action<BrowserNewPageOptions>? pageOptions = null)
     {
-        _ = Server;                 // Ensure Server is initialized
-        await InitializeAsync();    // Ensure Playwright is initialized
+        await EnsureServerStartedAsync(); // Ensure Server is initialized
+        await InitializeAsync();          // Ensure Playwright is initialized
 
         var options = new BrowserNewPageOptions(PageOptions);
         pageOptions?.Invoke(options);
@@ -160,8 +173,8 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     /// <remarks>The consumer is responsible for the correct closure and disposal of the context and any pages creates in it.</remarks>
     public async Task<IBrowserContext> CreatePlaywrightContextAsync(Action<BrowserNewContextOptions>? contextOptions = null)
     {
-        _ = Server;                 // Ensure Server is initialized
-        await InitializeAsync();    // Ensure Playwright is initialized
+        await EnsureServerStartedAsync(); // Ensure Server is initialized
+        await InitializeAsync();          // Ensure Playwright is initialized
 
         var options = new BrowserNewContextOptions(ContextOptions);
         contextOptions?.Invoke(options);
