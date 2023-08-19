@@ -16,7 +16,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     private IPlaywright? playwright;
     private IBrowser? browser;
     private IHostApplicationLifetime? lifetime;
-    private CancellationTokenSource hostStarted = new();
+    private TaskCompletionSource hostStarted = new();
 
     private string? uri;
     private int? port;
@@ -88,7 +88,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         var host = base.CreateHost(builder);
 
         lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
-        lifetime.ApplicationStarted.Register(() => hostStarted.Cancel());
+        lifetime.ApplicationStarted.Register(() => hostStarted.SetResult());
 
         return new CompositeHost(testHost, host);
     }
@@ -103,9 +103,9 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
 
     private async Task EnsureServerStartedAsync()
     {
-        if (hostStarted.IsCancellationRequested) return;
+        if (hostStarted.Task.IsCompleted) return;
         _ = Server;                 // Ensure Server is initialized
-        await Task.Delay(Timeout.Infinite, hostStarted.Token).ContinueWith(tsk => { });
+        await hostStarted.Task.ConfigureAwait(false);
     }
 
     /// <summary>
