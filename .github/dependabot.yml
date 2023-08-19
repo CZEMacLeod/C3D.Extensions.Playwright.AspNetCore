@@ -9,3 +9,6 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "Microsoft.AspNetCore.Mvc.Testing"
+        update-types: ["version-update:semver-major"] # Don't try to upgrade 6.x to 7.x as we target both frameworks.
