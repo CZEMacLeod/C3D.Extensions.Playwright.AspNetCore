@@ -140,6 +140,10 @@ steps:
     packageFeedSelector: 'nugetOrg'
     versionSelector: 'latestStable'
 
+- task: UseDotNet@2
+  inputs:
+    useGlobalJson: true
+
 - task: NuGetCommand@2
   inputs:
     command: 'restore'

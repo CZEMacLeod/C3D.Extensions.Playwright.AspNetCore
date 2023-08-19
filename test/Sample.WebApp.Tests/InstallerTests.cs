@@ -1,9 +1,4 @@
 ﻿using C3D.Extensions.Playwright.AspNetCore.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using Xunit.Abstractions;
@@ -32,7 +27,7 @@ public class InstallerTests
         outputHelper.WriteLine($"Path: {packagePath}");
 
         packagePath = Environment.ExpandEnvironmentVariables(packagePath);
-        
+
         Assert.NotEqual(string.Empty, packagePath);
 
         var folders = GetDirectories(packagePath);
@@ -83,6 +78,6 @@ public class InstallerTests
 
     private static IEnumerable<string> GetDirectories(string packagePath)
     {
-        return System.IO.Directory.GetDirectories(packagePath).Select(path => new DirectoryInfo(path).Name);
+        return Directory.GetDirectories(packagePath).Select(path => new DirectoryInfo(path).Name);
     }
 }
