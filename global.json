@@ -5,7 +5,7 @@
     "allowPrerelease": true
   },
     "msbuild-sdks": {
-        "Microsoft.Build.NoTargets": "2.0.1",
+        "Microsoft.Build.NoTargets": "3.7.0",
         "MSBuild.SDK.SystemWeb": "4.0.82",
         "MSBuild.SDK.SystemWeb.RazorLibrary": "4.0.82"
     }
