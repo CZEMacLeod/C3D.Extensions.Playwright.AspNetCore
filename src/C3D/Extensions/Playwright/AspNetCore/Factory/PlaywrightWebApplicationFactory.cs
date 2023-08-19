@@ -15,10 +15,13 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     private IPlaywright? playwright;
     private IBrowser? browser;
     private string? uri;
+    private int? port;
+    // We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
+    // This also allows multiple servers to run during the tests.
+    public int Port => port ??= 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
+    public string? Uri => uri ??= $"http://localhost:{Port}";
 
     private static int nextPort = 0;
-
-    public string? Uri => uri;
 
     #region "Overridable Properties"
     // Properties in this region can be overridden in a derived type and used as a fixture
@@ -35,19 +38,19 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     private BrowserNewPageOptions? pageOptions;
     protected virtual BrowserNewPageOptions PageOptions => pageOptions ??= new()
     {
-        BaseURL = uri
+        BaseURL = Uri
     };
 
     private BrowserNewContextOptions? contextOptions;
     protected virtual BrowserNewContextOptions ContextOptions => contextOptions ??= new()
     {
-        BaseURL = uri
+        BaseURL = Uri
     };
 
     public virtual LogLevel MinimumLogLevel => LogLevel.Trace;
     #endregion
 
-    protected virtual IBrowserType GetBrowser(PlaywrightBrowserType? browserType=null) => (browserType ?? BrowserType) switch
+    protected virtual IBrowserType GetBrowser(PlaywrightBrowserType? browserType = null) => (browserType ?? BrowserType) switch
     {
         PlaywrightBrowserType.Chromium => playwright?.Chromium,
         PlaywrightBrowserType.Firefox => playwright?.Firefox,
@@ -55,14 +58,12 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         _ => throw new ArgumentOutOfRangeException(nameof(browserType))
     } ?? throw new InvalidOperationException("Could not get browser type");
 
-
     protected virtual ILoggingBuilder ConfigureLogging(ILoggingBuilder builder)
     {
         builder.SetMinimumLevel(MinimumLogLevel);
         return builder;
     }
 
-    [MemberNotNull(nameof(uri))]
     protected override IHost CreateHost(IHostBuilder builder)
     {
         if (Environment is not null)
@@ -71,11 +72,6 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         }
         builder.ConfigureLogging(logging => ConfigureLogging(logging));
 
-        // We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
-        // This also allows multiple servers to run during the tests.
-        var port = 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
-        uri = $"http://localhost:{port}";
-
         // We the testHost, which can be used with HttpClient with a custom transport
         // It is assumed that the return of CreateHost is a host based on the TestHost Server.
         var testHost = base.CreateHost(builder);
@@ -83,7 +79,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         // Now we reconfigure the builder to use kestrel so we have an http listener that can be used by playwright
         builder.ConfigureWebHost(webHostBuilder => webHostBuilder.UseKestrel(options =>
         {
-            options.ListenLocalhost(port);
+            options.ListenLocalhost(Port);
         }));
         var host = base.CreateHost(builder);
 
@@ -113,7 +109,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         EnsureBrowserInstalled(browserType);
         var launchOptions = new BrowserTypeLaunchOptions(LaunchOptions);
         browserOptions?.Invoke(launchOptions);
-        return await GetBrowser(browserType).LaunchAsync(launchOptions);
+        return await LaunchAsync(GetBrowser(browserType), launchOptions);
     }
 
     private void EnsureBrowserInstalled(PlaywrightBrowserType? browserType)
@@ -195,8 +191,22 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         PlaywrightUtilities.InstallPlaywright(BrowserType);
 #pragma warning disable CS8774 // Member must have a non-null value when exiting.
         playwright ??= (await Microsoft.Playwright.Playwright.CreateAsync()) ?? throw new InvalidOperationException();
-        browser ??= (await GetBrowser().LaunchAsync(LaunchOptions)) ?? throw new InvalidOperationException();
+        browser ??= (await LaunchAsync(GetBrowser(), LaunchOptions)) ?? throw new InvalidOperationException();
 #pragma warning restore CS8774 // Member must have a non-null value when exiting.
+    }
+
+    private async Task<IBrowser> LaunchAsync(IBrowserType browser, BrowserTypeLaunchOptions options)
+    {
+        var args = (options.Args ?? Array.Empty<string>()).ToList();
+        var ports = args.SingleOrDefault(arg => arg.StartsWith("--explicitly-allowed-ports"));
+        if (ports is null && browser.Name == "chromium")
+        {
+            // In chromium some ports are blocked, such as sip ports 5060/5061.
+            // As these may be picked, we explicitly allow whatever port this host is running on.
+            args.Add($"--explicitly-allowed-ports={Port}");
+        }
+        options.Args = args;
+        return await browser.LaunchAsync(options);
     }
 
     protected override void Dispose(bool disposing)
