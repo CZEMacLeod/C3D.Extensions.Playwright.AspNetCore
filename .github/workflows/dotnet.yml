@@ -28,7 +28,7 @@ jobs:
       run: dotnet build --no-restore /p:ContinuousIntegrationBuild=true
 
     - name: Test
-      run: docker run --rm -v ${pwd}:/app -w /app/test --ipc=host mcr.microsoft.com/playwright/dotnet:v1.37.0-jammy dotnet test --no-build --verbosity normal
+      run: docker run --rm -v ${pwd}:/app -w /app --ipc=host mcr.microsoft.com/playwright/dotnet:v1.37.1-jammy dotnet test --no-build --verbosity normal
 
     - name: Upload dotnet test results
       uses: actions/upload-artifact@v3
