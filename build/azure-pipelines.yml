@@ -49,7 +49,14 @@ trigger:
 pr: none
 
 pool:
-  vmImage: windows-latest
+#  vmImage: windows-latest
+    name: 'C3D Windows'
+    demands:
+    - msbuild
+    - MSBuild_17.0
+    - visualstudio
+    - Agent.OS -equals Windows_NT
+    - VisualStudio.BuildTools.Version -gtVersion 17.0
 
 variables:
 - group: Github-Packages
