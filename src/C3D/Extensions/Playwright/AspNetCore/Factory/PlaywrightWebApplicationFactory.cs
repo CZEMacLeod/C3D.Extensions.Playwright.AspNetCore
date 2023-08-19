@@ -218,8 +218,11 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
             // In chromium some ports are blocked, such as sip ports 5060/5061.
             // As these may be picked, we explicitly allow whatever port this host is running on.
             args.Add($"--explicitly-allowed-ports={Port}");
+            options = new(options)
+            {
+                Args = args
+            };
         }
-        options.Args = args;
         return await browser.LaunchAsync(options);
     }
 
