@@ -1,5 +1,6 @@
 ﻿using C3D.Extensions.Playwright.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +23,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     // We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
     // This also allows multiple servers to run during the tests.
     public int Port => port ??= 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
-    public string? Uri => uri ??= $"http://localhost:{Port}";
+    public string Uri => uri ??= $"http://localhost:{Port}";
 
     private static int nextPort = 0;
 
@@ -251,7 +252,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
 
     // CompositeHost is based on https://github.com/xaviersolau/DevArticles/blob/e2e_test_blazor_with_playwright/MyBlazorApp/MyAppTests/WebTestingHostFactory.cs
     // Relay the call to both test host and kestrel host.
-    internal sealed class CompositeHost : IHost
+    internal sealed class CompositeHost : IHost, IServiceProvider
     {
         private readonly IHost testHost;
         private readonly IHost kestrelHost;
@@ -260,13 +261,24 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
             this.testHost = testHost;
             this.kestrelHost = kestrelHost;
         }
-        public IServiceProvider Services => testHost.Services;
+        public IServiceProvider Services => this;
         public void Dispose()
         {
             testHost.Dispose();
             kestrelHost.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        public object? GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IEnumerable<IHost>)) return new IHost[] { testHost, kestrelHost };
+            if (serviceType == typeof(IEnumerable<IServer>)) return new IServer[] { 
+                testHost.Services.GetRequiredService<IServer>(), 
+                kestrelHost.Services.GetRequiredService<IServer>()
+            };
+            return testHost.Services.GetService(serviceType);
+        }
+
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             await testHost.StartAsync(cancellationToken);
