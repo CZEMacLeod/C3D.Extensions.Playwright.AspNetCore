@@ -110,10 +110,15 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     {
         _ = Server;                 // Ensure Server is initialized
         await InitializeAsync();    // Ensure Playwright is initialized
-
+        EnsureBrowserInstalled(browserType);
         var launchOptions = new BrowserTypeLaunchOptions(LaunchOptions);
         browserOptions?.Invoke(launchOptions);
         return await GetBrowser(browserType).LaunchAsync(launchOptions);
+    }
+
+    private void EnsureBrowserInstalled(PlaywrightBrowserType? browserType)
+    {
+        PlaywrightUtilities.InstallPlaywright(browserType ?? BrowserType);
     }
 
     /// <summary>

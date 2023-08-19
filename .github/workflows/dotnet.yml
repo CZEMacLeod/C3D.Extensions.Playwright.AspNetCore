@@ -1,0 +1,43 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+#  push:
+#    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+  
+    - name: Setup .NET 6.0.x and 7.0.x
+      uses: actions/setup-dotnet@v3
+      with:
+        global-json-file: global.json
+        dotnet-version: |
+         6.0.x
+         7.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore /p:ContinuousIntegrationBuild=true
+
+    - name: Test
+      #run: docker run --rm -v ${pwd}:/app -w /app --ipc=host mcr.microsoft.com/playwright/dotnet:v1.37.1-jammy dotnet test --no-build --verbosity normal --logger:trx
+      run: dotnet test --no-build --verbosity normal --logger:trx --results-directory "TestResults"
+
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: dotnet-results
+        path: TestResults
+      # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}

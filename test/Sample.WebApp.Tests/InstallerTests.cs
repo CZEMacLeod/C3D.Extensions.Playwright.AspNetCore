@@ -1,9 +1,4 @@
 ﻿using C3D.Extensions.Playwright.AspNetCore.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using Xunit.Abstractions;
@@ -31,10 +26,6 @@ public class InstallerTests
 
         outputHelper.WriteLine($"Path: {packagePath}");
 
-        packagePath = Environment.ExpandEnvironmentVariables(packagePath);
-        
-        Assert.NotEqual(string.Empty, packagePath);
-
         var folders = GetDirectories(packagePath);
 
         foreach (var folder in folders) { outputHelper.WriteLine($"Folder: {folder}"); }
@@ -48,9 +39,9 @@ public class InstallerTests
     {
         var custom = Environment.GetEnvironmentVariable("PLAYWRIGHT_BROWSERS_PATH");
         if (!string.IsNullOrEmpty(custom)) return custom;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return "%USERPROFILE%\\AppData\\Local\\ms-playwright";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return "~/Library/Caches/ms-playwright";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return "~/.cache/ms-playwright";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\AppData\\Local\\ms-playwright";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Library/Caches/ms-playwright";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.cache/ms-playwright";
         return string.Empty;
     }
 
@@ -83,6 +74,6 @@ public class InstallerTests
 
     private static IEnumerable<string> GetDirectories(string packagePath)
     {
-        return System.IO.Directory.GetDirectories(packagePath).Select(path => new DirectoryInfo(path).Name);
+        return Directory.GetDirectories(packagePath).Select(path => new DirectoryInfo(path).Name);
     }
 }
