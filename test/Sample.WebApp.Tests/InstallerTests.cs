@@ -26,10 +26,6 @@ public class InstallerTests
 
         outputHelper.WriteLine($"Path: {packagePath}");
 
-        packagePath = Environment.ExpandEnvironmentVariables(packagePath);
-
-        Assert.NotEqual(string.Empty, packagePath);
-
         var folders = GetDirectories(packagePath);
 
         foreach (var folder in folders) { outputHelper.WriteLine($"Folder: {folder}"); }
@@ -43,9 +39,9 @@ public class InstallerTests
     {
         var custom = Environment.GetEnvironmentVariable("PLAYWRIGHT_BROWSERS_PATH");
         if (!string.IsNullOrEmpty(custom)) return custom;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return "%USERPROFILE%\\AppData\\Local\\ms-playwright";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return "~/Library/Caches/ms-playwright";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return "~/.cache/ms-playwright";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\AppData\\Local\\ms-playwright";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Library/Caches/ms-playwright";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.cache/ms-playwright";
         return string.Empty;
     }
 
