@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{DA726315
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
+		global.json = global.json
 		build\Test.snk = build\Test.snk
 	EndProjectSection
 EndProject
@@ -46,6 +47,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.WebApp", "samples\Sample.WebApp\Sample.WebApp.csproj", "{C9D19B9D-B61C-435A-8E6C-B32A56A76F27}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.WebApp.Tests", "test\Sample.WebApp.Tests\Sample.WebApp.Tests.csproj", "{DBF13B24-28DF-4B97-8040-2832108C0209}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github", "github", "{372E98C5-98DC-4593-9E6C-E9AC996088E4}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
