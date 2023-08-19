@@ -45,7 +45,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{87AD0A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.WebApp", "samples\Sample.WebApp\Sample.WebApp.csproj", "{C9D19B9D-B61C-435A-8E6C-B32A56A76F27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.WebApp.Tests", "test\Sample.WebApp.Tests\Sample.WebApp.Tests.csproj", "{DBF13B24-28DF-4B97-8040-2832108C0209}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.WebApp.Tests", "test\Sample.WebApp.Tests\Sample.WebApp.Tests.csproj", "{DBF13B24-28DF-4B97-8040-2832108C0209}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

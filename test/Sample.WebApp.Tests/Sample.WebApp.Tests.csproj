@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\samples\Sample.WebApp\Sample.WebApp.csproj" />
     <ProjectReference Include="..\..\src\C3D\Extensions\Playwright\AspNetCore.Xunit\C3D.Extensions.Playwright.AspNetCore.Xunit.csproj" />
   </ItemGroup>
