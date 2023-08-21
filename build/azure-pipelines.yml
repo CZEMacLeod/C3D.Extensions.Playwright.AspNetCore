@@ -49,14 +49,14 @@ trigger:
 pr: none
 
 pool:
-#  vmImage: windows-latest
-    name: 'C3D Windows'
-    demands:
-    - msbuild
-    - MSBuild_17.0
-    - visualstudio
-    - Agent.OS -equals Windows_NT
-    - VisualStudio.BuildTools.Version -gtVersion 17.0
+  vmImage: windows-latest
+# name: 'C3D Windows'
+# demands:
+# - msbuild
+# - MSBuild_17.0
+# - visualstudio
+# - Agent.OS -equals Windows_NT
+# - VisualStudio.BuildTools.Version -gtVersion 17.0
 
 variables:
 - group: Github-Packages
@@ -172,25 +172,28 @@ steps:
     clean: true
     msbuildArgs: '/t:$(target) /p:ProjectToBuild="$(project_to_build)" /p:ContinuousIntegrationBuild=true /p:PackageOutputPath="$(Build.ArtifactStagingDirectory)" /p:BuildUser="$(buildUser)" /p:BuildMachine="$(buildMachine)" /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)"'
 
-- task: VSTest@2
-  inputs:
-   testSelector: 'testAssemblies'
-   testAssemblyVer2: |
-     **\*.Tests.dll
-     !**\*TestAdapter.dll
-     !**\*TestCentric*.dll
-     !**\*TestHost*.dll
-     !**\*TestPlatform*.dll
-     !**\obj\**
-   searchFolder: 'test'
-   vstestLocationMethod: 'version'
-   vsTestVersion: 'toolsInstaller'
-   platform: '$(buildPlatform)'
-   configuration: '$(buildConfiguration)'
-   codeCoverageEnabled: true
-   minimumExpectedTests: 0
-   failOnMinTestsNotRunFail: false
-   failIfCoverageEmpty: false
+## Ignore tests for now as the main branch is protected and will have been tested before merge
+## Playwright tests do not run on windows server core containers - see https://github.com/CZEMacLeod/PlaywrightWindowsServerCore2022
+
+# - task: VSTest@2
+#   inputs:
+#    testSelector: 'testAssemblies'
+#    testAssemblyVer2: |
+#      **\*.Tests.dll
+#      !**\*TestAdapter.dll
+#      !**\*TestCentric*.dll
+#      !**\*TestHost*.dll
+#      !**\*TestPlatform*.dll
+#      !**\obj\**
+#    searchFolder: 'test'
+#    vstestLocationMethod: 'version'
+#    vsTestVersion: 'toolsInstaller'
+#    platform: '$(buildPlatform)'
+#    configuration: '$(buildConfiguration)'
+#    codeCoverageEnabled: true
+#    minimumExpectedTests: 0
+#    failOnMinTestsNotRunFail: false
+#    failIfCoverageEmpty: false
 
 - task: PublishBuildArtifacts@1
   inputs:
