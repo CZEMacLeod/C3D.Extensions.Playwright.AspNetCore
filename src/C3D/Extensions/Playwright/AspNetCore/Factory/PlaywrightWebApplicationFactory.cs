@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
 using System.Diagnostics.CodeAnalysis;
 
@@ -140,7 +141,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         EnsureBrowserInstalled(browserType);
         var launchOptions = new BrowserTypeLaunchOptions(LaunchOptions);
         browserOptions?.Invoke(launchOptions);
-        return await LaunchAsync(GetBrowser(browserType), launchOptions);
+        return await LaunchBrowserAsync(GetBrowser(browserType), launchOptions);
     }
 
     private void EnsureBrowserInstalled(PlaywrightBrowserType? browserType)
@@ -222,25 +223,85 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         PlaywrightUtilities.InstallPlaywright(BrowserType);
 #pragma warning disable CS8774 // Member must have a non-null value when exiting.
         playwright ??= (await Microsoft.Playwright.Playwright.CreateAsync()) ?? throw new InvalidOperationException();
-        browser ??= (await LaunchAsync(GetBrowser(), LaunchOptions)) ?? throw new InvalidOperationException();
+        browser ??= (await LaunchBrowserAsync(GetBrowser(), LaunchOptions)) ?? throw new InvalidOperationException();
 #pragma warning restore CS8774 // Member must have a non-null value when exiting.
     }
 
-    private async Task<IBrowser> LaunchAsync(IBrowserType browser, BrowserTypeLaunchOptions options)
+    private async Task<IBrowser> LaunchBrowserAsync(IBrowserType browser, BrowserTypeLaunchOptions options)
     {
-        var args = (options.Args ?? Array.Empty<string>()).ToList();
-        var ports = args.SingleOrDefault(arg => arg.StartsWith("--explicitly-allowed-ports"));
-        if (ports is null && browser.Name == "chromium")
+        List<string> args = new(options.Args ?? Enumerable.Empty<string>());
+
+        // In most browsers, ports are blocked, such as sip ports 5060/5061.
+        // As these may be picked, we explicitly allow whatever port this host is running on.
+
+        switch (browser.Name)
         {
-            // In chromium some ports are blocked, such as sip ports 5060/5061.
-            // As these may be picked, we explicitly allow whatever port this host is running on.
+            case "chromium":
+                options = UpdateChromiumOptions(options, args);
+                break;
+            case "firefox":
+                options = UpdateFirefoxOptions(options);
+
+                break;
+        }
+        return await browser.LaunchAsync(options);
+    }
+
+    private BrowserTypeLaunchOptions UpdateFirefoxOptions(BrowserTypeLaunchOptions options)
+    {
+        var prefs = options.FirefoxUserPrefs is null ? new Dictionary<string, object>() : new Dictionary<string, object>(options.FirefoxUserPrefs);
+        if (prefs.TryGetValue("network.security.ports.banned.override", out var portsList))
+        {
+            var ports = ((string)portsList).Split(',').Select(p => int.Parse(p)).ToList();
+            if (!ports.Contains(Port))
+            {
+                ports.Add(Port);
+                prefs["network.security.ports.banned.override"] = string.Join(',', ports);
+                options = new(options)
+                {
+                    FirefoxUserPrefs = prefs
+                };
+            }
+        }
+        else
+        {
+            prefs["network.security.ports.banned.override"] = Port.ToString();
+            options = new(options)
+            {
+                FirefoxUserPrefs = prefs
+            };
+        }
+
+        return options;
+    }
+
+    private BrowserTypeLaunchOptions UpdateChromiumOptions(BrowserTypeLaunchOptions options, List<string> args)
+    {
+        var portsArg = args.SingleOrDefault(arg => arg.StartsWith("--explicitly-allowed-ports"));
+        if (portsArg is null)
+        {
             args.Add($"--explicitly-allowed-ports={Port}");
             options = new(options)
             {
                 Args = args
             };
         }
-        return await browser.LaunchAsync(options);
+        else
+        {
+            var ports = portsArg.Split('=', 2)[1].Split(',').Select(p => int.Parse(p)).ToList();
+            if (!ports.Contains(Port))
+            {
+                ports.Add(Port);
+                args.Remove(portsArg);
+                args.Add($"--explicitly-allowed-ports={string.Join(',', ports)}");
+                options = new(options)
+                {
+                    Args = args
+                };
+            }
+        }
+
+        return options;
     }
 
     protected override void Dispose(bool disposing)
