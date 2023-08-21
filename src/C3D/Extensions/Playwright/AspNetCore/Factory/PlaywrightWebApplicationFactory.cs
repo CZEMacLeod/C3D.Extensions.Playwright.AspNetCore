@@ -22,8 +22,25 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     private int? port;
     // We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
     // This also allows multiple servers to run during the tests.
-    public int Port => port ??= 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
+    public virtual int Port => port ??= GetNextPort();
     public string Uri => uri ??= $"http://localhost:{Port}";
+
+    private static readonly int[] avoidPorts = new[] { 
+        5060, 5061, 
+        6000, 
+        6566, 
+        6665, 6666, 6667, 6668, 6669, 
+        6697, 10080 };
+
+    private int GetNextPort()
+    {
+        var port = 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
+        while (avoidPorts.Contains(port))   // We shouldn't ever roll into the next port because we have a space of at least 10 ports
+        {
+            port++;
+        }
+        return port;
+    }
 
     private static int nextPort = 0;
 
