@@ -1,34 +1,21 @@
 ﻿using Microsoft.Playwright;
+using System.Runtime.CompilerServices;
 
 namespace C3D.Extensions.Playwright.AspNetCore.Utilities;
 
-public class PlaywrightContextPage : IAsyncDisposable
+public class PlaywrightContextPage : PlaywrightDisposablePage
 {
     private IBrowserContext? context;
-    private IPage? page;
 
-    internal PlaywrightContextPage(IBrowserContext context, IPage page)
+    internal PlaywrightContextPage(IBrowserContext context, IPage page, TracingStartOptions traceOptions) : 
+        base(page, traceOptions) => this.context = context;
+
+    public override IBrowserContext Context => context ?? throw new ObjectDisposedException(nameof(Context));
+
+    protected override async Task OnDisposeAsync()
     {
-        this.context = context;
-        this.page = page;
-    }
-
-    public IBrowserContext Context => context ?? throw new ObjectDisposedException(nameof(Context));
-
-    public IPage Page => page ?? throw new ObjectDisposedException(nameof(Page));
-
-    private bool _disposed;
-    public async ValueTask DisposeAsync()
-    {
-        if (_disposed) return;
-
-        if (page is not null) await page.CloseAsync();
-        page = null;
-
+        await base.OnDisposeAsync();
         if (context is not null) await context.CloseAsync();
         context = null;
-
-        _disposed = true;
-        GC.SuppressFinalize(this);
     }
 }

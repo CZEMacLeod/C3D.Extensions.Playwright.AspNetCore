@@ -4,13 +4,13 @@ namespace C3D.Extensions.Playwright.AspNetCore.Utilities;
 
 public class PlaywrightTrace : IAsyncDisposable
 {
-    internal PlaywrightTrace(IPage page)
-    {
-        this.page = page;
-    }
-    private readonly IPage page;
+
+    internal PlaywrightTrace(IPage page) : this(page.Context) { }
+
+    internal PlaywrightTrace(IBrowserContext context) => this.context = context;
 
     private string? path;
+    private readonly IBrowserContext context;
 
     public string? TraceName => path;
 
@@ -18,13 +18,13 @@ public class PlaywrightTrace : IAsyncDisposable
 
     internal async Task InitializeAsync(TracingStartOptions options)
     {
-        await page.Context.Tracing.StartAsync(options);
+        await context.Tracing.StartAsync(options);
         path = options.Name;
     }
 
     public async ValueTask DisposeAsync()
     {
-        await page.Context.Tracing.StopAsync(new()
+        await context.Tracing.StopAsync(new()
         {
             Path = path
         });

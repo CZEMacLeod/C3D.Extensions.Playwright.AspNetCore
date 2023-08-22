@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace C3D.Extensions.Playwright.AspNetCore;
 
@@ -17,23 +18,24 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     private IPlaywright? playwright;
     private IBrowser? browser;
     private IHostApplicationLifetime? lifetime;
-    private TaskCompletionSource hostStarted = new();
+    private readonly TaskCompletionSource hostStarted = new();
 
     private string? uri;
     private int? port;
     // We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
     // This also allows multiple servers to run during the tests.
-    public virtual int Port => port ??= GetNextPort();
+
     public string Uri => uri ??= $"http://localhost:{Port}";
 
-    private static readonly int[] avoidPorts = new[] { 
-        5060, 5061, 
-        6000, 
-        6566, 
-        6665, 6666, 6667, 6668, 6669, 
+    #region Next Port
+    private static readonly int[] avoidPorts = new[] {
+        5060, 5061,
+        6000,
+        6566,
+        6665, 6666, 6667, 6668, 6669,
         6697, 10080 };
 
-    private int GetNextPort()
+    private static int GetNextPort()
     {
         var port = 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
         while (avoidPorts.Contains(port))   // We shouldn't ever roll into the next port because we have a space of at least 10 ports
@@ -42,32 +44,62 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         }
         return port;
     }
+    #endregion
 
     private static int nextPort = 0;
 
-    #region "Overridable Properties"
+    #region Overridable Properties
     // Properties in this region can be overridden in a derived type and used as a fixture
     // If you create multiple derived fixtures, and derived tests injecting each one into a base test class
     // you can easily setup a test matrix for running a set of tests against multiple browsers and/or environments
+
+    public virtual int Port => port ??= GetNextPort();
+
+    protected virtual bool AddTestConfiguration => true;
+    protected virtual string TestConfigurationFileName => "appsettings.Test.json";
+
+    protected virtual bool UseHostConfiguration => true;
+
     public virtual string? Environment { get; }
-    public virtual PlaywrightBrowserType BrowserType => PlaywrightBrowserType.Chromium;
 
-    protected virtual BrowserTypeLaunchOptions LaunchOptions { get; } = new()
-    {
-        Headless = true
-    };
+    protected virtual string TestConfigurationSection => "Playwright";
 
-    private BrowserNewPageOptions? pageOptions;
-    protected virtual BrowserNewPageOptions PageOptions => pageOptions ??= new()
-    {
-        BaseURL = Uri
-    };
+    private IConfiguration? testConfiguration;
+    protected virtual IConfiguration TestConfiguration => testConfiguration ??= UseHostConfiguration ?
+        Services.GetRequiredService<IConfiguration>().GetSection(TestConfigurationSection) :
+        new ConfigurationBuilder().Build();
+
+    private BrowserTypeLaunchOptions? launchOptions;
+    protected virtual BrowserTypeLaunchOptions LaunchOptions => launchOptions ??= BindConfiguration(new BrowserTypeLaunchOptions()
+        {
+            Headless = true
+        });
 
     private BrowserNewContextOptions? contextOptions;
-    protected virtual BrowserNewContextOptions ContextOptions => contextOptions ??= new()
+    protected virtual BrowserNewContextOptions ContextOptions => contextOptions ??= BindConfiguration(new BrowserNewContextOptions()
+        {
+            BaseURL = Uri
+        });
+
+    private BrowserNewPageOptions? pageOptions;
+    protected virtual BrowserNewPageOptions PageOptions => pageOptions??= BindConfiguration(new BrowserNewPageOptions()
+        {
+            BaseURL = Uri
+        });
+
+    private TracingStartOptions? tracingOptions;
+    public virtual TracingStartOptions TracingOptions => tracingOptions ??= BindConfiguration(new TracingStartOptions());
+
+    private T BindConfiguration<T>(T baseOptions, [CallerMemberName] string sectionName = null!)
     {
-        BaseURL = Uri
-    };
+        TestConfiguration.Bind(sectionName, baseOptions);
+        return baseOptions;
+    }
+
+    /// <summary>
+    /// The default browser type to launch and used to create pages
+    /// </summary>
+    public virtual PlaywrightBrowserType BrowserType => TestConfiguration.GetValue("BrowserType", PlaywrightBrowserType.Chromium);
 
     public virtual LogLevel MinimumLogLevel => LogLevel.Trace;
     #endregion
@@ -94,6 +126,8 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         }
         builder.ConfigureLogging(logging => ConfigureLogging(logging));
 
+        ConfigureConfiguration(builder);
+
         // We the testHost, which can be used with HttpClient with a custom transport
         // It is assumed that the return of CreateHost is a host based on the TestHost Server.
         var testHost = base.CreateHost(builder);
@@ -109,6 +143,24 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         lifetime.ApplicationStarted.Register(() => hostStarted.SetResult());
 
         return new CompositeHost(testHost, host);
+    }
+
+    protected virtual IHostBuilder ConfigureConfiguration(IHostBuilder builder)
+    {
+        if (AddTestConfiguration)
+        {
+            var testDirectory = Directory.GetCurrentDirectory();
+            builder.ConfigureAppConfiguration(config =>
+                config.AddJsonFile(Path.Combine(testDirectory, TestConfigurationFileName), true));
+            builder.ConfigureAppConfiguration(config =>
+            {
+                foreach (var assembly in GetTestAssemblies())
+                {
+                    config.AddUserSecrets(assembly);
+                }
+            });
+        }
+        return builder;
     }
 
     public async Task<IBrowser> GetDefaultPlaywrightBrowserAsync()
@@ -181,7 +233,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         var options = new BrowserNewPageOptions(PageOptions);
         pageOptions?.Invoke(options);
         var page = await browser.NewPageAsync(options);
-        return new(browser, page);
+        return new(browser, page, TracingOptions);
     }
 
     /// <summary>
@@ -211,7 +263,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     {
         var context = await CreatePlaywrightContextAsync(contextOptions);
         var page = await context.NewPageAsync();
-        return new(context, page);
+        return new(context, page, TracingOptions);
     }
 
 
@@ -353,8 +405,8 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         public object? GetService(Type serviceType)
         {
             if (serviceType == typeof(IEnumerable<IHost>)) return new IHost[] { testHost, kestrelHost };
-            if (serviceType == typeof(IEnumerable<IServer>)) return new IServer[] { 
-                testHost.Services.GetRequiredService<IServer>(), 
+            if (serviceType == typeof(IEnumerable<IServer>)) return new IServer[] {
+                testHost.Services.GetRequiredService<IServer>(),
                 kestrelHost.Services.GetRequiredService<IServer>()
             };
             return testHost.Services.GetService(serviceType);
