@@ -13,123 +13,123 @@ using System.Runtime.CompilerServices;
 namespace C3D.Extensions.Playwright.AspNetCore;
 
 public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram>
-    where TProgram : class
+	where TProgram : class
 {
-    private IPlaywright? playwright;
-    private IBrowser? browser;
-    private IHostApplicationLifetime? lifetime;
-    private readonly TaskCompletionSource hostStarted = new();
+	private IPlaywright? playwright;
+	private IBrowser? browser;
+	private IHostApplicationLifetime? lifetime;
+	private readonly TaskCompletionSource hostStarted = new();
 
-    private string? uri;
-    private int? port;
-    // We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
-    // This also allows multiple servers to run during the tests.
+	private string? uri;
+	private int? port;
+	// We randomize the server port so we ensure that any hard coded Uri's fail in the tests.
+	// This also allows multiple servers to run during the tests.
 
-    public string Uri => uri ??= $"http://localhost:{Port}";
+	public string Uri => uri ??= $"http://localhost:{Port}";
 
-    #region Next Port
-    private static readonly int[] avoidPorts = new[] {
-        5060, 5061,
-        6000,
-        6566,
-        6665, 6666, 6667, 6668, 6669,
-        6697, 10080 };
+	#region Next Port
+	private static readonly int[] avoidPorts = new[] {
+		5060, 5061,
+		6000,
+		6566,
+		6665, 6666, 6667, 6668, 6669,
+		6697, 10080 };
 
-    private static int GetNextPort()
-    {
-        var port = 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
-        while (avoidPorts.Contains(port))   // We shouldn't ever roll into the next port because we have a space of at least 10 ports
-        {
-            port++;
-        }
-        return port;
-    }
-    #endregion
+	private static int GetNextPort()
+	{
+		var port = 5000 + Interlocked.Add(ref nextPort, 10 + System.Random.Shared.Next(10));
+		while (avoidPorts.Contains(port))   // We shouldn't ever roll into the next port because we have a space of at least 10 ports
+		{
+			port++;
+		}
+		return port;
+	}
+	#endregion
 
-    private static int nextPort = 0;
+	private static int nextPort = 0;
 
-    #region Overridable Properties
-    // Properties in this region can be overridden in a derived type and used as a fixture
-    // If you create multiple derived fixtures, and derived tests injecting each one into a base test class
-    // you can easily setup a test matrix for running a set of tests against multiple browsers and/or environments
+	#region Overridable Properties
+	// Properties in this region can be overridden in a derived type and used as a fixture
+	// If you create multiple derived fixtures, and derived tests injecting each one into a base test class
+	// you can easily setup a test matrix for running a set of tests against multiple browsers and/or environments
 
-    public virtual int Port => port ??= GetNextPort();
+	public virtual int Port => port ??= GetNextPort();
 
-    protected virtual bool AddTestConfiguration => true;
-    protected virtual string TestConfigurationFileName => "appsettings.Test.json";
+	protected virtual bool AddTestConfiguration => true;
+	protected virtual string TestConfigurationFileName => "appsettings.Test.json";
 
-    protected virtual bool UseHostConfiguration => true;
+	protected virtual bool UseHostConfiguration => true;
 
-    public virtual string? Environment { get; }
+	public virtual string? Environment { get; }
 
-    protected virtual string TestConfigurationSection => "Playwright";
+	protected virtual string TestConfigurationSection => "Playwright";
 
-    private IConfiguration? testConfiguration;
-    protected virtual IConfiguration TestConfiguration => testConfiguration ??= UseHostConfiguration ?
-        Services.GetRequiredService<IConfiguration>().GetSection(TestConfigurationSection) :
-        new ConfigurationBuilder().Build();
+	private IConfiguration? testConfiguration;
+	protected virtual IConfiguration TestConfiguration => testConfiguration ??= UseHostConfiguration ?
+		Services.GetRequiredService<IConfiguration>().GetSection(TestConfigurationSection) :
+		new ConfigurationBuilder().Build();
 
-    private BrowserTypeLaunchOptions? launchOptions;
-    protected virtual BrowserTypeLaunchOptions LaunchOptions => launchOptions ??= BindConfiguration(new BrowserTypeLaunchOptions()
-        {
-            Headless = true
-        });
+	private BrowserTypeLaunchOptions? launchOptions;
+	protected virtual BrowserTypeLaunchOptions LaunchOptions => launchOptions ??= BindConfiguration(new BrowserTypeLaunchOptions()
+	{
+		Headless = true
+	});
 
-    private BrowserNewContextOptions? contextOptions;
-    protected virtual BrowserNewContextOptions ContextOptions => contextOptions ??= BindConfiguration(new BrowserNewContextOptions()
-        {
-            BaseURL = Uri
-        });
+	private BrowserNewContextOptions? contextOptions;
+	protected virtual BrowserNewContextOptions ContextOptions => contextOptions ??= BindConfiguration(new BrowserNewContextOptions()
+	{
+		BaseURL = Uri
+	});
 
-    private BrowserNewPageOptions? pageOptions;
-    protected virtual BrowserNewPageOptions PageOptions => pageOptions??= BindConfiguration(new BrowserNewPageOptions()
-        {
-            BaseURL = Uri
-        });
+	private BrowserNewPageOptions? pageOptions;
+	protected virtual BrowserNewPageOptions PageOptions => pageOptions ??= BindConfiguration(new BrowserNewPageOptions()
+	{
+		BaseURL = Uri
+	});
 
-    private TracingStartOptions? tracingOptions;
+	private TracingStartOptions? tracingOptions;
 	protected internal virtual TracingStartOptions TracingOptions => tracingOptions ??= BindConfiguration(new TracingStartOptions());
 
-    private T BindConfiguration<T>(T baseOptions, [CallerMemberName] string sectionName = null!)
-    {
-        TestConfiguration.Bind(sectionName, baseOptions);
-        return baseOptions;
-    }
-
-    /// <summary>
-    /// Returns a copy of the default tracing options configured for this fixture
-    /// </summary>
-    public TracingStartOptions GetTracingOptions() => new(TracingOptions); 
+	private T BindConfiguration<T>(T baseOptions, [CallerMemberName] string sectionName = null!)
+	{
+		TestConfiguration.Bind(sectionName, baseOptions);
+		return baseOptions;
+	}
 
 	/// <summary>
-    /// The default browser type to launch and used to create pages
-    /// </summary>
-    public virtual PlaywrightBrowserType BrowserType => TestConfiguration.GetValue("BrowserType", PlaywrightBrowserType.Chromium);
+	/// Returns a copy of the default tracing options configured for this fixture
+	/// </summary>
+	public TracingStartOptions GetTracingOptions() => new(TracingOptions);
 
-    public virtual LogLevel MinimumLogLevel => LogLevel.Trace;
-    #endregion
+	/// <summary>
+	/// The default browser type to launch and used to create pages
+	/// </summary>
+	public virtual PlaywrightBrowserType BrowserType => TestConfiguration.GetValue("BrowserType", PlaywrightBrowserType.Chromium);
 
-    protected virtual IBrowserType GetBrowser(PlaywrightBrowserType? browserType = null) => (browserType ?? BrowserType) switch
-    {
-        PlaywrightBrowserType.Chromium => playwright?.Chromium,
-        PlaywrightBrowserType.Firefox => playwright?.Firefox,
-        PlaywrightBrowserType.Webkit => playwright?.Webkit,
-        _ => throw new ArgumentOutOfRangeException(nameof(browserType))
-    } ?? throw new InvalidOperationException("Could not get browser type");
+	public virtual LogLevel MinimumLogLevel => LogLevel.Trace;
+	#endregion
 
-    protected virtual ILoggingBuilder ConfigureLogging(ILoggingBuilder builder)
-    {
-        builder.SetMinimumLevel(MinimumLogLevel);
-        return builder;
-    }
+	protected virtual IBrowserType GetBrowser(PlaywrightBrowserType? browserType = null) => (browserType ?? BrowserType) switch
+	{
+		PlaywrightBrowserType.Chromium => playwright?.Chromium,
+		PlaywrightBrowserType.Firefox => playwright?.Firefox,
+		PlaywrightBrowserType.Webkit => playwright?.Webkit,
+		_ => throw new ArgumentOutOfRangeException(nameof(browserType))
+	} ?? throw new InvalidOperationException("Could not get browser type");
 
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        if (Environment is not null)
-        {
-            builder.UseEnvironment(Environment);
-        }
-        builder.ConfigureLogging(logging => ConfigureLogging(logging));
+	protected virtual ILoggingBuilder ConfigureLogging(ILoggingBuilder builder)
+	{
+		builder.SetMinimumLevel(MinimumLogLevel);
+		return builder;
+	}
+
+	protected override IHost CreateHost(IHostBuilder builder)
+	{
+		if (Environment is not null)
+		{
+			builder.UseEnvironment(Environment);
+		}
+		builder.ConfigureLogging(logging => ConfigureLogging(logging));
 
 		if (AddTestConfiguration)
 		{
@@ -139,298 +139,298 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
 			});
 		}
 
-        // We the testHost, which can be used with HttpClient with a custom transport
-        // It is assumed that the return of CreateHost is a host based on the TestHost Server.
-        var testHost = base.CreateHost(builder);
+		// We the testHost, which can be used with HttpClient with a custom transport
+		// It is assumed that the return of CreateHost is a host based on the TestHost Server.
+		var testHost = base.CreateHost(builder);
 
-        // Now we reconfigure the builder to use kestrel so we have an http listener that can be used by playwright
-        builder.ConfigureWebHost(webHostBuilder => webHostBuilder.UseKestrel(options =>
-        {
-            options.ListenLocalhost(Port);
-        }));
-        var host = base.CreateHost(builder);
+		// Now we reconfigure the builder to use kestrel so we have an http listener that can be used by playwright
+		builder.ConfigureWebHost(webHostBuilder => webHostBuilder.UseKestrel(options =>
+		{
+			options.ListenLocalhost(Port);
+		}));
+		var host = base.CreateHost(builder);
 
-        lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
-        lifetime.ApplicationStarted.Register(() => hostStarted.SetResult());
+		lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+		lifetime.ApplicationStarted.Register(() => hostStarted.SetResult());
 
-        return new CompositeHost(testHost, host);
-    }
+		return new CompositeHost(testHost, host);
+	}
 
 	protected virtual IConfigurationBuilder ConfigureConfiguration(IConfigurationBuilder config)
-    {
+	{
 		foreach (var assembly in GetTestAssemblies())
-        {
-            if (!string.IsNullOrEmpty(assembly.Location))
-            {
-                var location = Path.GetDirectoryName(assembly.Location);
-                if (!string.IsNullOrEmpty(location))
-                {
-                    config.AddJsonFile(Path.Combine(location, TestConfigurationFileName), true);
-                }
-            }
-                    config.AddUserSecrets(assembly);
-                }
-        return config;
-    }
+		{
+			if (!string.IsNullOrEmpty(assembly.Location))
+			{
+				var location = Path.GetDirectoryName(assembly.Location);
+				if (!string.IsNullOrEmpty(location))
+				{
+					config.AddJsonFile(Path.Combine(location, TestConfigurationFileName), true);
+				}
+			}
+			config.AddUserSecrets(assembly);
+		}
+		return config;
+	}
 
-    public async Task<IBrowser> GetDefaultPlaywrightBrowserAsync()
-    {
-        await EnsureServerStartedAsync(); // Ensure Server is initialized
-        await InitializeAsync();          // Ensure Playwright is initialized
+	public async Task<IBrowser> GetDefaultPlaywrightBrowserAsync()
+	{
+		await EnsureServerStartedAsync(); // Ensure Server is initialized
+		await InitializeAsync();          // Ensure Playwright is initialized
 
-        return browser;
-    }
+		return browser;
+	}
 
-    private async Task EnsureServerStartedAsync()
-    {
-        if (hostStarted.Task.IsCompleted) return;
-        _ = Server;                 // Ensure Server is initialized
-        await hostStarted.Task.ConfigureAwait(false);
-    }
+	private async Task EnsureServerStartedAsync()
+	{
+		if (hostStarted.Task.IsCompleted) return;
+		_ = Server;                 // Ensure Server is initialized
+		await hostStarted.Task.ConfigureAwait(false);
+	}
 
-    /// <summary>
-    /// Creates a new Browser instance.
-    /// </summary>
-    /// <param name="browserType">Can be set to override the default BrowserType property</param>
-    /// <param name="browserOptions">A callback that can be used to override the default LaunchOptions property</param>
-    /// <returns>An IBrowser object</returns>
-    /// <remarks> The consumer must ensure that the browser instance is closed and disposed of correctly.</remarks>
-    public async Task<IBrowser> CreateCustomPlaywrightBrowserAsync(PlaywrightBrowserType? browserType = null,
-                                                                   Action<BrowserTypeLaunchOptions>? browserOptions = null)
-    {
-        await EnsureServerStartedAsync(); // Ensure Server is initialized
-        await InitializeAsync();          // Ensure Playwright is initialized
-        EnsureBrowserInstalled(browserType);
-        var launchOptions = new BrowserTypeLaunchOptions(LaunchOptions);
-        browserOptions?.Invoke(launchOptions);
-        return await LaunchBrowserAsync(GetBrowser(browserType), launchOptions);
-    }
+	/// <summary>
+	/// Creates a new Browser instance.
+	/// </summary>
+	/// <param name="browserType">Can be set to override the default BrowserType property</param>
+	/// <param name="browserOptions">A callback that can be used to override the default LaunchOptions property</param>
+	/// <returns>An IBrowser object</returns>
+	/// <remarks> The consumer must ensure that the browser instance is closed and disposed of correctly.</remarks>
+	public async Task<IBrowser> CreateCustomPlaywrightBrowserAsync(PlaywrightBrowserType? browserType = null,
+																   Action<BrowserTypeLaunchOptions>? browserOptions = null)
+	{
+		await EnsureServerStartedAsync(); // Ensure Server is initialized
+		await InitializeAsync();          // Ensure Playwright is initialized
+		EnsureBrowserInstalled(browserType);
+		var launchOptions = new BrowserTypeLaunchOptions(LaunchOptions);
+		browserOptions?.Invoke(launchOptions);
+		return await LaunchBrowserAsync(GetBrowser(browserType), launchOptions);
+	}
 
-    private void EnsureBrowserInstalled(PlaywrightBrowserType? browserType)
-    {
-        PlaywrightUtilities.InstallPlaywright(browserType ?? BrowserType);
-    }
+	private void EnsureBrowserInstalled(PlaywrightBrowserType? browserType)
+	{
+		PlaywrightUtilities.InstallPlaywright(browserType ?? BrowserType);
+	}
 
-    /// <summary>
-    /// Creates a new Page instance using the web application URL and any custom options.
-    /// </summary>
-    /// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
-    /// <returns>An IPage object</returns>
-    /// <remarks>The consumer should close the page when they are finished with it.</remarks>
-    public async Task<IPage> CreatePlaywrightPageAsync(Action<BrowserNewPageOptions>? pageOptions = null)
-    {
-        await EnsureServerStartedAsync(); // Ensure Server is initialized
-        await InitializeAsync();          // Ensure Playwright is initialized
+	/// <summary>
+	/// Creates a new Page instance using the web application URL and any custom options.
+	/// </summary>
+	/// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
+	/// <returns>An IPage object</returns>
+	/// <remarks>The consumer should close the page when they are finished with it.</remarks>
+	public async Task<IPage> CreatePlaywrightPageAsync(Action<BrowserNewPageOptions>? pageOptions = null)
+	{
+		await EnsureServerStartedAsync(); // Ensure Server is initialized
+		await InitializeAsync();          // Ensure Playwright is initialized
 
-        var options = new BrowserNewPageOptions(PageOptions);
-        pageOptions?.Invoke(options);
-        return await browser.NewPageAsync(options);
-    }
+		var options = new BrowserNewPageOptions(PageOptions);
+		pageOptions?.Invoke(options);
+		return await browser.NewPageAsync(options);
+	}
 
-    /// <summary>
-    /// Creates a new Browser instance and a Page inside it, using the web application URL and any custom options.
-    /// </summary>
-    /// <param name="browserType">Can be set to override the default BrowserType property</param>
-    /// <param name="browserOptions">A callback that can be used to override the default LaunchOptions property</param>
-    /// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
-    /// <returns>A PlaywrightBrowserPage object which will correctly close the browser and page when disposed</returns>
-    /// <remarks>The PlaywrightBrowserPage should be disposed of when finished with</remarks>
-    public async Task<PlaywrightBrowserPage> CreateCustomPlaywrightBrowserPageAsync(PlaywrightBrowserType? browserType = null,
-                                                                                    Action<BrowserTypeLaunchOptions>? browserOptions = null,
-                                                                                    Action<BrowserNewPageOptions>? pageOptions = null)
-    {
-        var browser = await CreateCustomPlaywrightBrowserAsync(browserType, browserOptions);
-        var options = new BrowserNewPageOptions(PageOptions);
-        pageOptions?.Invoke(options);
-        var page = await browser.NewPageAsync(options);
-        return new(browser, page, TracingOptions);
-    }
+	/// <summary>
+	/// Creates a new Browser instance and a Page inside it, using the web application URL and any custom options.
+	/// </summary>
+	/// <param name="browserType">Can be set to override the default BrowserType property</param>
+	/// <param name="browserOptions">A callback that can be used to override the default LaunchOptions property</param>
+	/// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
+	/// <returns>A PlaywrightBrowserPage object which will correctly close the browser and page when disposed</returns>
+	/// <remarks>The PlaywrightBrowserPage should be disposed of when finished with</remarks>
+	public async Task<PlaywrightBrowserPage> CreateCustomPlaywrightBrowserPageAsync(PlaywrightBrowserType? browserType = null,
+																					Action<BrowserTypeLaunchOptions>? browserOptions = null,
+																					Action<BrowserNewPageOptions>? pageOptions = null)
+	{
+		var browser = await CreateCustomPlaywrightBrowserAsync(browserType, browserOptions);
+		var options = new BrowserNewPageOptions(PageOptions);
+		pageOptions?.Invoke(options);
+		var page = await browser.NewPageAsync(options);
+		return new(browser, page, TracingOptions);
+	}
 
-    /// <summary>
-    /// Creates a new Browser Context instance using the web application URL and any custom options.
-    /// </summary>
-    /// <param name="contextOptions">A callback that can be used to override the default ContextOptions property</param>
-    /// <returns>An IBrowserContext object</returns>
-    /// <remarks>The consumer is responsible for the correct closure and disposal of the context and any pages creates in it.</remarks>
-    public async Task<IBrowserContext> CreatePlaywrightContextAsync(Action<BrowserNewContextOptions>? contextOptions = null)
-    {
-        await EnsureServerStartedAsync(); // Ensure Server is initialized
-        await InitializeAsync();          // Ensure Playwright is initialized
+	/// <summary>
+	/// Creates a new Browser Context instance using the web application URL and any custom options.
+	/// </summary>
+	/// <param name="contextOptions">A callback that can be used to override the default ContextOptions property</param>
+	/// <returns>An IBrowserContext object</returns>
+	/// <remarks>The consumer is responsible for the correct closure and disposal of the context and any pages creates in it.</remarks>
+	public async Task<IBrowserContext> CreatePlaywrightContextAsync(Action<BrowserNewContextOptions>? contextOptions = null)
+	{
+		await EnsureServerStartedAsync(); // Ensure Server is initialized
+		await InitializeAsync();          // Ensure Playwright is initialized
 
-        var options = new BrowserNewContextOptions(ContextOptions);
-        contextOptions?.Invoke(options);
-        return await browser.NewContextAsync(options);
-    }
+		var options = new BrowserNewContextOptions(ContextOptions);
+		contextOptions?.Invoke(options);
+		return await browser.NewContextAsync(options);
+	}
 
-    /// <summary>
-    /// Creates a new Browser Context instance and a Page inside it, using the web application URL and any custom options.
-    /// </summary>
-    /// <param name="contextOptions">A callback that can be used to override the default ContextOptions property</param>
-    /// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
-    /// <returns>A PlaywrightContextPage object which will correctly close the browser and page when disposed</returns>
-    /// <remarks>The PlaywrightContextPage should be disposed of when finished with</remarks>
-    public async Task<PlaywrightContextPage> CreatePlaywrightContextPageAsync(Action<BrowserNewContextOptions>? contextOptions = null)
-    {
-        var context = await CreatePlaywrightContextAsync(contextOptions);
-        var page = await context.NewPageAsync();
-        return new(context, page, TracingOptions);
-    }
+	/// <summary>
+	/// Creates a new Browser Context instance and a Page inside it, using the web application URL and any custom options.
+	/// </summary>
+	/// <param name="contextOptions">A callback that can be used to override the default ContextOptions property</param>
+	/// <param name="pageOptions">A callback that can be used to override the default PageOptions property</param>
+	/// <returns>A PlaywrightContextPage object which will correctly close the browser and page when disposed</returns>
+	/// <remarks>The PlaywrightContextPage should be disposed of when finished with</remarks>
+	public async Task<PlaywrightContextPage> CreatePlaywrightContextPageAsync(Action<BrowserNewContextOptions>? contextOptions = null)
+	{
+		var context = await CreatePlaywrightContextAsync(contextOptions);
+		var page = await context.NewPageAsync();
+		return new(context, page, TracingOptions);
+	}
 
 
-    [MemberNotNull(nameof(playwright), nameof(browser))]
-    public virtual async Task InitializeAsync()
-    {
-        if (playwright is not null && browser is not null) return;
+	[MemberNotNull(nameof(playwright), nameof(browser))]
+	public virtual async Task InitializeAsync()
+	{
+		if (playwright is not null && browser is not null) return;
 
-        PlaywrightUtilities.InstallPlaywright(BrowserType);
+		PlaywrightUtilities.InstallPlaywright(BrowserType);
 #pragma warning disable CS8774 // Member must have a non-null value when exiting.
-        playwright ??= (await Microsoft.Playwright.Playwright.CreateAsync()) ?? throw new InvalidOperationException();
-        browser ??= (await LaunchBrowserAsync(GetBrowser(), LaunchOptions)) ?? throw new InvalidOperationException();
+		playwright ??= (await Microsoft.Playwright.Playwright.CreateAsync()) ?? throw new InvalidOperationException();
+		browser ??= (await LaunchBrowserAsync(GetBrowser(), LaunchOptions)) ?? throw new InvalidOperationException();
 #pragma warning restore CS8774 // Member must have a non-null value when exiting.
-    }
+	}
 
-    private async Task<IBrowser> LaunchBrowserAsync(IBrowserType browser, BrowserTypeLaunchOptions options)
-    {
-        List<string> args = new(options.Args ?? Enumerable.Empty<string>());
+	private async Task<IBrowser> LaunchBrowserAsync(IBrowserType browser, BrowserTypeLaunchOptions options)
+	{
+		List<string> args = new(options.Args ?? Enumerable.Empty<string>());
 
-        // In most browsers, ports are blocked, such as sip ports 5060/5061.
-        // As these may be picked, we explicitly allow whatever port this host is running on.
+		// In most browsers, ports are blocked, such as sip ports 5060/5061.
+		// As these may be picked, we explicitly allow whatever port this host is running on.
 
-        switch (browser.Name)
-        {
-            case "chromium":
-                options = UpdateChromiumOptions(options, args);
-                break;
-            case "firefox":
-                options = UpdateFirefoxOptions(options);
+		switch (browser.Name)
+		{
+			case "chromium":
+				options = UpdateChromiumOptions(options, args);
+				break;
+			case "firefox":
+				options = UpdateFirefoxOptions(options);
 
-                break;
-        }
-        return await browser.LaunchAsync(options);
-    }
+				break;
+		}
+		return await browser.LaunchAsync(options);
+	}
 
-    private BrowserTypeLaunchOptions UpdateFirefoxOptions(BrowserTypeLaunchOptions options)
-    {
-        var prefs = options.FirefoxUserPrefs is null ? new Dictionary<string, object>() : new Dictionary<string, object>(options.FirefoxUserPrefs);
-        if (prefs.TryGetValue("network.security.ports.banned.override", out var portsList))
-        {
-            var ports = ((string)portsList).Split(',').Select(p => int.Parse(p)).ToList();
-            if (!ports.Contains(Port))
-            {
-                ports.Add(Port);
-                prefs["network.security.ports.banned.override"] = string.Join(',', ports);
-                options = new(options)
-                {
-                    FirefoxUserPrefs = prefs
-                };
-            }
-        }
-        else
-        {
-            prefs["network.security.ports.banned.override"] = Port.ToString();
-            options = new(options)
-            {
-                FirefoxUserPrefs = prefs
-            };
-        }
+	private BrowserTypeLaunchOptions UpdateFirefoxOptions(BrowserTypeLaunchOptions options)
+	{
+		var prefs = options.FirefoxUserPrefs is null ? new Dictionary<string, object>() : new Dictionary<string, object>(options.FirefoxUserPrefs);
+		if (prefs.TryGetValue("network.security.ports.banned.override", out var portsList))
+		{
+			var ports = ((string)portsList).Split(',').Select(p => int.Parse(p)).ToList();
+			if (!ports.Contains(Port))
+			{
+				ports.Add(Port);
+				prefs["network.security.ports.banned.override"] = string.Join(',', ports);
+				options = new(options)
+				{
+					FirefoxUserPrefs = prefs
+				};
+			}
+		}
+		else
+		{
+			prefs["network.security.ports.banned.override"] = Port.ToString();
+			options = new(options)
+			{
+				FirefoxUserPrefs = prefs
+			};
+		}
 
-        return options;
-    }
+		return options;
+	}
 
-    private BrowserTypeLaunchOptions UpdateChromiumOptions(BrowserTypeLaunchOptions options, List<string> args)
-    {
-        var portsArg = args.SingleOrDefault(arg => arg.StartsWith("--explicitly-allowed-ports"));
-        if (portsArg is null)
-        {
-            args.Add($"--explicitly-allowed-ports={Port}");
-            options = new(options)
-            {
-                Args = args
-            };
-        }
-        else
-        {
-            var ports = portsArg.Split('=', 2)[1].Split(',').Select(p => int.Parse(p)).ToList();
-            if (!ports.Contains(Port))
-            {
-                ports.Add(Port);
-                args.Remove(portsArg);
-                args.Add($"--explicitly-allowed-ports={string.Join(',', ports)}");
-                options = new(options)
-                {
-                    Args = args
-                };
-            }
-        }
+	private BrowserTypeLaunchOptions UpdateChromiumOptions(BrowserTypeLaunchOptions options, List<string> args)
+	{
+		var portsArg = args.SingleOrDefault(arg => arg.StartsWith("--explicitly-allowed-ports"));
+		if (portsArg is null)
+		{
+			args.Add($"--explicitly-allowed-ports={Port}");
+			options = new(options)
+			{
+				Args = args
+			};
+		}
+		else
+		{
+			var ports = portsArg.Split('=', 2)[1].Split(',').Select(p => int.Parse(p)).ToList();
+			if (!ports.Contains(Port))
+			{
+				ports.Add(Port);
+				args.Remove(portsArg);
+				args.Add($"--explicitly-allowed-ports={string.Join(',', ports)}");
+				options = new(options)
+				{
+					Args = args
+				};
+			}
+		}
 
-        return options;
-    }
+		return options;
+	}
 
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
+	protected override void Dispose(bool disposing)
+	{
+		base.Dispose(disposing);
 
-        playwright?.Dispose();
-        playwright = null;
-    }
+		playwright?.Dispose();
+		playwright = null;
+	}
 
-    private bool isDisposed;
-    [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Dealt with by base class")]
-    public async override ValueTask DisposeAsync()
-    {
-        if (browser is not null)
-        {
-            await browser.DisposeAsync();
-        }
-        browser = null;
+	private bool isDisposed;
+	[SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Dealt with by base class")]
+	public async override ValueTask DisposeAsync()
+	{
+		if (browser is not null)
+		{
+			await browser.DisposeAsync();
+		}
+		browser = null;
 
-        await base.DisposeAsync();
+		await base.DisposeAsync();
 
-        isDisposed = true;
-    }
+		isDisposed = true;
+	}
 
-    protected bool IsDisposed => isDisposed;
+	protected bool IsDisposed => isDisposed;
 
-    public override string ToString() => $"{Environment}_{BrowserType}_{typeof(TProgram).FullName}";
+	public override string ToString() => $"{Environment}_{BrowserType}_{typeof(TProgram).FullName}";
 
-    // CompositeHost is based on https://github.com/xaviersolau/DevArticles/blob/e2e_test_blazor_with_playwright/MyBlazorApp/MyAppTests/WebTestingHostFactory.cs
-    // Relay the call to both test host and kestrel host.
-    internal sealed class CompositeHost : IHost, IServiceProvider
-    {
-        private readonly IHost testHost;
-        private readonly IHost kestrelHost;
-        public CompositeHost(IHost testHost, IHost kestrelHost)
-        {
-            this.testHost = testHost;
-            this.kestrelHost = kestrelHost;
-        }
-        public IServiceProvider Services => this;
-        public void Dispose()
-        {
-            testHost.Dispose();
-            kestrelHost.Dispose();
-            GC.SuppressFinalize(this);
-        }
+	// CompositeHost is based on https://github.com/xaviersolau/DevArticles/blob/e2e_test_blazor_with_playwright/MyBlazorApp/MyAppTests/WebTestingHostFactory.cs
+	// Relay the call to both test host and kestrel host.
+	internal sealed class CompositeHost : IHost, IServiceProvider
+	{
+		private readonly IHost testHost;
+		private readonly IHost kestrelHost;
+		public CompositeHost(IHost testHost, IHost kestrelHost)
+		{
+			this.testHost = testHost;
+			this.kestrelHost = kestrelHost;
+		}
+		public IServiceProvider Services => this;
+		public void Dispose()
+		{
+			testHost.Dispose();
+			kestrelHost.Dispose();
+			GC.SuppressFinalize(this);
+		}
 
-        public object? GetService(Type serviceType)
-        {
-            if (serviceType == typeof(IEnumerable<IHost>)) return new IHost[] { testHost, kestrelHost };
-            if (serviceType == typeof(IEnumerable<IServer>)) return new IServer[] {
-                testHost.Services.GetRequiredService<IServer>(),
-                kestrelHost.Services.GetRequiredService<IServer>()
-            };
-            return testHost.Services.GetService(serviceType);
-        }
+		public object? GetService(Type serviceType)
+		{
+			if (serviceType == typeof(IEnumerable<IHost>)) return new IHost[] { testHost, kestrelHost };
+			if (serviceType == typeof(IEnumerable<IServer>)) return new IServer[] {
+				testHost.Services.GetRequiredService<IServer>(),
+				kestrelHost.Services.GetRequiredService<IServer>()
+			};
+			return testHost.Services.GetService(serviceType);
+		}
 
-        public async Task StartAsync(CancellationToken cancellationToken = default)
-        {
-            await testHost.StartAsync(cancellationToken);
-            await kestrelHost.StartAsync(cancellationToken);
-        }
-        public async Task StopAsync(CancellationToken cancellationToken = default)
-        {
-            await testHost.StopAsync(cancellationToken);
-            await kestrelHost.StopAsync(cancellationToken);
-        }
-    }
+		public async Task StartAsync(CancellationToken cancellationToken = default)
+		{
+			await testHost.StartAsync(cancellationToken);
+			await kestrelHost.StartAsync(cancellationToken);
+		}
+		public async Task StopAsync(CancellationToken cancellationToken = default)
+		{
+			await testHost.StopAsync(cancellationToken);
+			await kestrelHost.StopAsync(cancellationToken);
+		}
+	}
 }
