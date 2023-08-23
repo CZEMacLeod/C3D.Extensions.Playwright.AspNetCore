@@ -88,7 +88,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         });
 
     private TracingStartOptions? tracingOptions;
-    public virtual TracingStartOptions TracingOptions => tracingOptions ??= BindConfiguration(new TracingStartOptions());
+	protected internal virtual TracingStartOptions TracingOptions => tracingOptions ??= BindConfiguration(new TracingStartOptions());
 
     private T BindConfiguration<T>(T baseOptions, [CallerMemberName] string sectionName = null!)
     {
@@ -97,6 +97,11 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     }
 
     /// <summary>
+    /// Returns a copy of the default tracing options configured for this fixture
+    /// </summary>
+    public TracingStartOptions GetTracingOptions() => new(TracingOptions); 
+
+	/// <summary>
     /// The default browser type to launch and used to create pages
     /// </summary>
     public virtual PlaywrightBrowserType BrowserType => TestConfiguration.GetValue("BrowserType", PlaywrightBrowserType.Chromium);
