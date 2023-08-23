@@ -126,7 +126,13 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         }
         builder.ConfigureLogging(logging => ConfigureLogging(logging));
 
-        ConfigureConfiguration(builder);
+		if (AddTestConfiguration)
+		{
+			builder.ConfigureAppConfiguration(config =>
+			{
+				ConfigureConfiguration(config);
+			});
+		}
 
         // We the testHost, which can be used with HttpClient with a custom transport
         // It is assumed that the return of CreateHost is a host based on the TestHost Server.
@@ -145,22 +151,21 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
         return new CompositeHost(testHost, host);
     }
 
-    protected virtual IHostBuilder ConfigureConfiguration(IHostBuilder builder)
+	protected virtual IConfigurationBuilder ConfigureConfiguration(IConfigurationBuilder config)
     {
-        if (AddTestConfiguration)
+		foreach (var assembly in GetTestAssemblies())
         {
-            var testDirectory = Directory.GetCurrentDirectory();
-            builder.ConfigureAppConfiguration(config =>
-                config.AddJsonFile(Path.Combine(testDirectory, TestConfigurationFileName), true));
-            builder.ConfigureAppConfiguration(config =>
+            if (!string.IsNullOrEmpty(assembly.Location))
             {
-                foreach (var assembly in GetTestAssemblies())
+                var location = Path.GetDirectoryName(assembly.Location);
+                if (!string.IsNullOrEmpty(location))
                 {
+                    config.AddJsonFile(Path.Combine(location, TestConfigurationFileName), true);
+                }
+            }
                     config.AddUserSecrets(assembly);
                 }
-            });
-        }
-        return builder;
+        return config;
     }
 
     public async Task<IBrowser> GetDefaultPlaywrightBrowserAsync()
