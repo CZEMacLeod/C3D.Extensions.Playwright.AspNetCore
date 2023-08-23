@@ -1,0 +1,25 @@
+﻿@page
+@model Sample.WebApp.Pages.GeoLocationModel
+@{
+	ViewData["Title"] = "Location";
+}
+
+<div>Latitude: <span id="latitude" class="location"></span></div>
+<div>Longitude: <span id="longitude" class="location"></span></div>
+<button onclick="getLocation()" id="getLocationButton">Get Location</button>
+<script>
+
+	var latitude = document.getElementById('latitude');
+	var longitude = document.getElementById('longitude');
+	
+	function getLocation() {
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(showPosition);
+		}
+	}
+
+	function showPosition(position) {
+		latitude.innerText = position.coords.latitude.toString();
+		longitude.innerText = position.coords.longitude.toString();
+	}
+</script> 
