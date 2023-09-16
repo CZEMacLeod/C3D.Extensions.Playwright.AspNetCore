@@ -142,15 +142,29 @@ steps:
     versionSpec: '>=6.6.1'
     checkLatest: true
 
-- task: VisualStudioTestPlatformInstaller@1
-  inputs:
-    packageFeedSelector: 'nugetOrg'
-    versionSelector: 'latestStable'
+# - task: VisualStudioTestPlatformInstaller@1
+#   inputs:
+#     packageFeedSelector: 'nugetOrg'
+#     versionSelector: 'latestStable'
 
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '8.0.x'
+## Tests require the aspnetcore runtime which has to be installed with the full sdk
+# - task: UseDotNet@2
+#   inputs:
+#     packageType: 'sdk'
+#     version: '6.0.x'
+
+## Tests require the aspnetcore runtime which has to be installed with the full sdk
+# - task: UseDotNet@2
+#   inputs:
+#     packageType: 'sdk'
+#     version: '7.0.x'
+
+## Tests require the aspnetcore runtime which has to be installed with the full sdk
+# - task: UseDotNet@2
+#   inputs:
+#     packageType: 'sdk'
+#     includePreviewVersions: true
+#     version: '8.0.x'
 
 - task: UseDotNet@2
   inputs:
