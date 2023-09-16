@@ -220,6 +220,7 @@ steps:
     arguments: 'sign $(Build.ArtifactStagingDirectory)\*.nupkg -Timestamper $(timestamper) -CertificateFingerprint $(app_pfx_thumbprint)'
 
 - task: CopyFiles@2
+  condition: and(succeeded(), ne(variables['package_count'],0))
   displayName: Create nuget publish config
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)\build'
@@ -227,6 +228,7 @@ steps:
     targetFolder: $(Build.ArtifactStagingDirectory)
 
 - task: PowerShell@2
+  condition: and(succeeded(), ne(variables['package_count'],0))
   displayName: Build Nuget Source URL
   inputs:
     targetType: 'inline'
@@ -239,6 +241,7 @@ steps:
     GITHUB_OWNER: $(GITHUB_OWNER)
 
 - script: nuget.exe sources Add -NonInteractive -Name GitHub -Source "%NUGET_SOURCE%" -Username "%GITHUB_USERNAME%" -Password "%GITHUB_TOKEN%" -ConfigFile %NUGET_CONFIG%
+  condition: and(succeeded(), ne(variables['package_count'],0))
   displayName: Add github package source
   env:
     GITHUB_OWNER: $(GITHUB_OWNER)
@@ -255,11 +258,13 @@ steps:
     NUGET_CONFIG: $(Build.ArtifactStagingDirectory)\nuget.publish.config
 
 - script: nuget.exe sources Add -NonInteractive -Name NuGet -Source "https://api.nuget.org/v3/index.json" -ConfigFile %NUGET_CONFIG%
+  condition: and(succeeded(), ne(variables['package_count'],0))
   displayName: Add nuget.org package source
   env:
     NUGET_CONFIG: $(Build.ArtifactStagingDirectory)\nuget.publish.config
 
 - script: nuget.exe setapikey %NUGET_API_KEY% -Source "https://api.nuget.org/v3/index.json" -ConfigFile %NUGET_CONFIG%
+  condition: and(succeeded(), ne(variables['package_count'],0))
   displayName: Set nuget.org apikey
   env:
     NUGET_API_KEY: $(NUGET_API_KEY)
