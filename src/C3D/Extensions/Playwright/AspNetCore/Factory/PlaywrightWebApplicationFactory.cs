@@ -17,7 +17,7 @@ public class PlaywrightWebApplicationFactory<TProgram> : WebApplicationFactory<T
     private IPlaywright? playwright;
     private IBrowser? browser;
     private IHostApplicationLifetime? lifetime;
-    private TaskCompletionSource hostStarted = new();
+    private readonly TaskCompletionSource hostStarted = new();
 
     private string? uri;
     private int? port;

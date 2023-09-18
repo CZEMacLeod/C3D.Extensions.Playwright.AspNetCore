@@ -12,6 +12,13 @@ public class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
 
+        builder.Services.AddAuthorization(config =>
+        {
+            config.AddPolicy(Security.Policy.AdminPolicy, policy => { policy.RequireRole(Security.Role.Admin); });
+        });
+
+        builder.Services.AddSingleton<IConfigurationRoot>(builder.Configuration);
+
         var app = builder.Build();
 
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -38,9 +45,8 @@ public class Program
 
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
-
-
 
         app.MapRazorPages();
 
