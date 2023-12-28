@@ -226,25 +226,25 @@ steps:
      Write-Host "Package Count: $($packages.Count)"
      Write-Host ("##vso[task.setvariable variable=package_count;]$($packages.Count)")
 
-  # Run the signing command
-  - task: PowerShell@2
-    displayName: Sign packages
-    condition: and(succeeded(), ne(variables['package_count'],0))
-    inputs:
-      targetType: inline
-      script: |
-        sign code azure-key-vault `
-        "**/*.nupkg" `
-        --base-directory "$(Build.ArtifactStagingDirectory)" `
-        -d "Cynthia Z E MacLeod" `
-        -u "https://github.com/CZEMacLeod" `
-        -kvu "https://c3d-devops.vault.azure.net/" `
-        -kvc "c3d-codesign" `
-        -v information `
-        -t "$(timestamper)" `
-        --azure-key-vault-tenant-id "$(SignTenantId)" `
-        --azure-key-vault-client-id "$(SignClientId)" `
-        --azure-key-vault-client-secret '$(SignClientSecret)'
+# Run the signing command
+- task: PowerShell@2
+  displayName: Sign packages
+  condition: and(succeeded(), ne(variables['package_count'],0))
+  inputs:
+    targetType: inline
+    script: |
+      sign code azure-key-vault `
+      "**/*.nupkg" `
+      --base-directory "$(Build.ArtifactStagingDirectory)" `
+      -d "Cynthia Z E MacLeod" `
+      -u "https://github.com/CZEMacLeod" `
+      -kvu "https://c3d-devops.vault.azure.net/" `
+      -kvc "c3d-codesign" `
+      -v information `
+      -t "$(timestamper)" `
+      --azure-key-vault-tenant-id "$(SignTenantId)" `
+      --azure-key-vault-client-id "$(SignClientId)" `
+      --azure-key-vault-client-secret '$(SignClientSecret)'
 
 - task: CopyFiles@2
   condition: and(succeeded(), ne(variables['package_count'],0))
