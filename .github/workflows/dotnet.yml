@@ -20,7 +20,7 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         #global-json-file: global.json
-        dotnet-quality: preview
+        dotnet-quality: 'ga'
         dotnet-version: |
          6.0.x
          7.0.x
