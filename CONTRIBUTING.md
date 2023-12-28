@@ -30,8 +30,8 @@ By participating, you are expected to uphold this code.
 ## Documentation
 
 This project contains some documentation and examples in the README.md for each package ([C3D.Extensions.Playwright.AspNetCore Documentation](src/C3D/Extensions/Playwright/AspNetCore/README.md), and [C3D.Extensions.Playwright.AspNetCore.Xunit Documentation](src/C3D/Extensions/Playwright/AspNetCore.Xunit/README.md)), as well as some overview information in the root [README.md](README.md).
-There is also a sample by by of the unit tests dogfooding the packages at (test/Sample.WebApp.Tests)[test/Sample.WebApp.Tests]
-This is an area where we could expand significantly, by adding a docs/ folder and creating full documentation of all features.
+There is also a sample by by of the unit tests dogfooding the packages at [test/Sample.WebApp.Tests](test/Sample.WebApp.Tests).
+This is an area where we could expand significantly, by adding a `docs/` folder and creating full documentation of all features.
 
 ## I Have a Question
 
@@ -75,7 +75,8 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 
 #### How Do I Submit a Good Bug Report?
 
-> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead sensitive bugs must be sent by email to <>.
+> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public.
+Instead sensitive bugs must be sent by email to <cynthia.macleod@cloud3d.ltd>.
 
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
