@@ -12,6 +12,8 @@ public class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
 
+        builder.Services.AddHttpLogging(_ => { });  // Required by app.UseHttpLogging for Net 8.0
+
         var app = builder.Build();
 
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
