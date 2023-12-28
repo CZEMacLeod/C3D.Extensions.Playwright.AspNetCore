@@ -2,8 +2,9 @@ parameters:
   - name: timestamper
     type: string
     displayName: Time Stamper URL
-    default: 'http://timestamp.digicert.com'
+    default: 'http://timestamp.acs.microsoft.com'
     values:
+    - 'http://timestamp.acs.microsoft.com'
     - 'http://timestamp.sectigo.com'
     - 'http://timestamp.digicert.com'
     - 'http://aatl-timestamp.globalsign.com/tsa/aohfewat2389535fnasgnlg5m23'
@@ -110,15 +111,6 @@ steps:
     secureFile: '61ad38e7-05ff-4421-aea8-e3241b75c7a1'
 
 - task: PowerShell@2
-  displayName: 'Install Certificate'
-  inputs:
-    targetType: 'filePath'
-    filePath: 'build/ImportCert.ps1'
-  env:
-    password: $(pfx-password)
-    pfx: $(c3d-codesign)
-
-- task: PowerShell@2
   displayName: 'Get Commit IDs'
   env:
     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
@@ -141,6 +133,14 @@ steps:
   inputs:
     versionSpec: '>=6.6.1'
     checkLatest: true
+
+# Install the code signing tool
+- task: DotNetCoreCLI@2
+  inputs:
+    command: custom
+    custom: tool
+    arguments: update sign --global --version 0.9.1-beta.23530.1
+  displayName: Install SignTool tool
 
 # - task: VisualStudioTestPlatformInstaller@1
 #   inputs:
@@ -226,12 +226,25 @@ steps:
      Write-Host "Package Count: $($packages.Count)"
      Write-Host ("##vso[task.setvariable variable=package_count;]$($packages.Count)")
 
-- task: NuGetCommand@2
-  condition: and(succeeded(), ne(variables['package_count'],0))
-  displayName: 'NuGet Sign'
-  inputs:
-    command: custom
-    arguments: 'sign $(Build.ArtifactStagingDirectory)\*.nupkg -Timestamper $(timestamper) -CertificateFingerprint $(app_pfx_thumbprint)'
+  # Run the signing command
+  - task: PowerShell@2
+    displayName: Sign packages
+    condition: and(succeeded(), ne(variables['package_count'],0))
+    inputs:
+      targetType: inline
+      script: |
+        sign code azure-key-vault `
+        "**/*.nupkg" `
+        --base-directory "$(Build.ArtifactStagingDirectory)" `
+        -d "Cynthia Z E MacLeod" `
+        -u "https://github.com/CZEMacLeod" `
+        -kvu "https://c3d-devops.vault.azure.net/" `
+        -kvc "c3d-codesign" `
+        -v information `
+        -t "$(timestamper)" `
+        --azure-key-vault-tenant-id "$(SignTenantId)" `
+        --azure-key-vault-client-id "$(SignClientId)" `
+        --azure-key-vault-client-secret '$(SignClientSecret)'
 
 - task: CopyFiles@2
   condition: and(succeeded(), ne(variables['package_count'],0))
@@ -309,11 +322,3 @@ steps:
     repositoryName: CZEMacLeod/C3D.Extensions.Playwright.AspNetCore
     assets: $(Build.ArtifactStagingDirectory)/*.nupkg
     addChangeLog: true
-
-- task: PowerShell@2
-  displayName: 'Remove Cert'
-  inputs:
-    targetType: filePath
-    filePath: 'build/RemoveCert.ps1'
-    arguments: '-thumb $(app_pfx_thumbprint)'
-  condition: always()
