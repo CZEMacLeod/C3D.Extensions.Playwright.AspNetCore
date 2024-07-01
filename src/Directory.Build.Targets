@@ -21,7 +21,7 @@
   <PropertyGroup>
     <Authors>CZEMacLeod</Authors>
     <Company>Cloud3D Ltd.</Company>
-    <Copyright>©2023 Cynthia Z E Macleod All rights reserved.</Copyright>
+    <Copyright>©2023-2024 Cynthia Z E Macleod All rights reserved.</Copyright>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile Condition="EXISTS('$(MSBuildProjectDirectory)\README.md')">README.md</PackageReadmeFile>
     <PackageLicensePath>$(MSBuildThisFileDirectory)..\$(PackageLicenseFile)</PackageLicensePath>
@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" PrivateAssets="All" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.139" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
