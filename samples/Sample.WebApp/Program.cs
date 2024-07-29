@@ -19,6 +19,8 @@ public class Program
 
         builder.Services.AddSingleton<IConfigurationRoot>(builder.Configuration);
 
+        builder.Services.AddHttpLogging(_ => { });  // Required by app.UseHttpLogging for Net 8.0
+
         var app = builder.Build();
 
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
