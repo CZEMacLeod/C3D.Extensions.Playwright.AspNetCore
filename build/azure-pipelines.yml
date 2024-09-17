@@ -73,7 +73,7 @@ variables:
 - name: buildUser
   value: '$(Build.QueuedBy)'
 - name: 'timestamper'
-  value: 'http://timestamp.comodoca.com'
+  value: ${{ parameters.timestamper }}
 - name: 'git_commit_ids'
   value: ${{ parameters.git_commit_ids }}
 - name: 'target'
