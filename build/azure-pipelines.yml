@@ -290,19 +290,19 @@ steps:
   env:
     NUGET_CONFIG: $(Build.ArtifactStagingDirectory)\nuget.publish.config
 
-- script: nuget.exe setapikey %NUGET_API_KEY% -Source "https://api.nuget.org/v3/index.json" -ConfigFile %NUGET_CONFIG%
-  condition: and(succeeded(), ne(variables['package_count'],0))
-  displayName: Set nuget.org apikey
-  env:
-    NUGET_API_KEY: $(NUGET_API_KEY)
-    NUGET_CONFIG: $(Build.ArtifactStagingDirectory)\nuget.publish.config
-
-- script: nuget push -Source NuGet -ConfigFile %NUGET_CONFIG% -SkipDuplicate "%PACKAGES_DIR%\*.nupkg"
+- task: NuGetCommand@2
   displayName: Push Nuget Packages to nuget.org
   condition: and(succeeded(), ne(variables['package_count'],0))
-  env:
-    PACKAGES_DIR: $(Build.ArtifactStagingDirectory)
-    NUGET_CONFIG: $(Build.ArtifactStagingDirectory)\nuget.publish.config
+  inputs:
+    command: 'push'
+    feedsToUse: 'config'
+    includeNugetOrg: 'true'
+    publishFeedCredentials: 'NuGet.org'
+    externalFeedCredentials: 'NuGet.org'
+    packagesToPush: $(Build.ArtifactStagingDirectory)\*.nupkg
+    verbosityPush: 'Detailed'
+    nuGetFeedType: 'external'
+    allowPackageConflicts: true
 
 - powershell: |
     Write-Host "Tagging Build: $env:BuildNumber"
@@ -314,7 +314,7 @@ steps:
     BuildNumber: $(Build.BuildNumber)
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
-- task: GithubRelease@0 
+- task: GithubRelease@1
   displayName: 'Create GitHub Release'
   condition: and(succeeded(), ne(variables['package_count'],0))
   inputs:
