@@ -1,7 +1,9 @@
 ﻿using C3D.Extensions.Playwright.AspNetCore.Utilities;
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Xunit.Abstractions;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace Sample.WebApp.Tests;
 
