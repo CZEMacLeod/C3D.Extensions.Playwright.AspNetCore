@@ -35,7 +35,7 @@ jobs:
 
     - name: Test
       #run: docker run --rm -v ${pwd}:/app -w /app --ipc=host mcr.microsoft.com/playwright/dotnet:v1.37.1-jammy dotnet test --no-build --verbosity normal --logger:trx
-      run: dotnet test --no-build --verbosity normal --logger:trx --results-directory "TestResults"
+      run: dotnet test --no-build --verbosity normal --logger:trx --results-directory "TestResults" -p:TestTfmsInParallel=false -p:ParallelizeTestCollections=false
 
     - name: Upload dotnet test results
       uses: actions/upload-artifact@v4
