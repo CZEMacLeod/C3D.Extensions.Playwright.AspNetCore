@@ -12,6 +12,13 @@ public class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
 
+        builder.Services.AddAuthorization(config =>
+        {
+            config.AddPolicy(Security.Policy.AdminPolicy, policy => { policy.RequireRole(Security.Role.Admin); });
+        });
+
+        builder.Services.AddSingleton<IConfigurationRoot>(builder.Configuration);
+
         builder.Services.AddHttpLogging(_ => { });  // Required by app.UseHttpLogging for Net 8.0
 
         var app = builder.Build();
@@ -40,9 +47,8 @@ public class Program
 
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
-
-
 
         app.MapRazorPages();
 

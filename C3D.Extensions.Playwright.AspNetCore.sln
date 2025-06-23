@@ -62,6 +62,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github", "github", "{AC8C5C
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C3D.Extensions.Playwright.AspNetCore.Authentication", "src\C3D\Extensions\Playwright\AspNetCore.Authentication\C3D.Extensions.Playwright.AspNetCore.Authentication.csproj", "{A865812B-765F-4B0A-89DB-E5F5FBDDD920}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +86,10 @@ Global
 		{DBF13B24-28DF-4B97-8040-2832108C0209}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBF13B24-28DF-4B97-8040-2832108C0209}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBF13B24-28DF-4B97-8040-2832108C0209}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A865812B-765F-4B0A-89DB-E5F5FBDDD920}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A865812B-765F-4B0A-89DB-E5F5FBDDD920}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A865812B-765F-4B0A-89DB-E5F5FBDDD920}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A865812B-765F-4B0A-89DB-E5F5FBDDD920}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,6 +101,7 @@ Global
 		{C9D19B9D-B61C-435A-8E6C-B32A56A76F27} = {87AD0A87-358B-4C6B-832B-04269C7D9AB0}
 		{DBF13B24-28DF-4B97-8040-2832108C0209} = {7257F2A8-EE70-4224-9D5D-1EE29EAA0338}
 		{AC8C5C5D-E914-4919-AB9F-02BA2FE67EC5} = {DA726315-C6FB-4BCB-A766-4BD32A9643A2}
+		{A865812B-765F-4B0A-89DB-E5F5FBDDD920} = {79DBA4F1-9703-4A06-A219-C0E03D99633F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F8A03877-9554-4F94-B4B5-0513AAB4A1B8}
