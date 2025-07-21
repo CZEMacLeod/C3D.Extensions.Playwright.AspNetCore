@@ -11,11 +11,8 @@
   </PropertyGroup>
 
   <Target Name="SetAuthors">
-    <RemoveDuplicates
-            Inputs="@(Author)">
-      <Output
-          TaskParameter="Filtered"
-          ItemName="_Author"/>
+    <RemoveDuplicates Inputs="@(Author)">
+      <Output TaskParameter="Filtered" ItemName="_Author" />
     </RemoveDuplicates>
     <PropertyGroup>
       <Authors Condition="'@(_Author)'!=''">@(_Author, ',')</Authors>
@@ -23,11 +20,8 @@
   </Target>
 
   <Target Name="SetPackageTags">
-    <RemoveDuplicates
-            Inputs="@(PackageTag)">
-      <Output
-          TaskParameter="Filtered"
-          ItemName="_PackageTag"/>
+    <RemoveDuplicates Inputs="@(PackageTag)">
+      <Output TaskParameter="Filtered" ItemName="_PackageTag" />
     </RemoveDuplicates>
     <PropertyGroup>
       <PackageTags Condition="'$(PackageTags)'==''">@(_PackageTag, ' ')</PackageTags>
@@ -54,7 +48,7 @@
     </ItemGroup>
     <ItemGroup>
       <GitProjectDirectory Include="$(MSBuildProjectDirectory)" />
-      <GitProjectDirectory Include="@(ProjectReference->DirectoryName())" />
+      <GitProjectDirectory Include="@(ProjectReference-&gt;DirectoryName())" />
     </ItemGroup>
     <Message Importance="high" Text="Project: $(MSBuildProjectName)" />
     <Message Importance="high" Text="Git Commit IDs: %(_Temporary.Identity)" />
@@ -67,9 +61,7 @@
       <Output TaskParameter="ConsoleOutput" ItemName="ProjectCommitID" />
     </Exec>
     <ItemGroup>
-      <ProjectCommitID Condition="'%(Identity)' != '' AND
-                                  '@(ProjectCommitID)' != '' AND
-                                  '@(_Temporary)' != ''">
+      <ProjectCommitID Condition="'%(Identity)' != '' AND                                   '@(ProjectCommitID)' != '' AND                                   '@(_Temporary)' != ''">
         <CommitIDFound>true</CommitIDFound>
       </ProjectCommitID>
     </ItemGroup>

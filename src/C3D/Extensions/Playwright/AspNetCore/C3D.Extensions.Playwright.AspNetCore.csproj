@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.20" Condition="'$(TargetFramework)'=='net7.0'" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.17" Condition="'$(TargetFramework)'=='net8.0'" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.6" Condition="'$(TargetFramework)'=='net9.0'" />
-    <PackageReference Include="Microsoft.Playwright" Version="1.52.0" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.53.0" />
   </ItemGroup>
 
   <ItemGroup>
