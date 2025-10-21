@@ -49,9 +49,9 @@ public class PageTests : IClassFixture<PlaywrightPageFixture<Program>>
 
         Assert.NotNull(navItems);
 
-        Assert.Equal(2, await navItems.CountAsync());
+        Assert.Equal(3, await navItems.CountAsync());
 
-        var link = navItems.Nth(1);
+        var link = navItems.Nth(2);
 
         Assert.NotNull(link);
 
